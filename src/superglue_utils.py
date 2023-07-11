@@ -33,7 +33,7 @@ def match_image():
     sinkhorn_iterations = 20 # Number of Sinkhorn iterations for matching.
     match_threshold = 0.5 # Remove matches with low confidence. Set to -1 to keep all matches.
     show_keypoints = True # Show the detected keypoints.
-    no_display = False
+    no_display = True
     force_cpu = False # Force CPU mode. It is significantly slower, but allows the model to run on systems withou dedicated GPU.
     
    
@@ -218,8 +218,9 @@ def match_image():
             print('\nWriting image to {}'.format(out_file))
             cv2.imwrite(out_file, out)
 
-
-    cv2.destroyAllWindows()
+    if not no_display:
+        cv2.destroyAllWindows()
+    
     vs.cleanup()
     
     return satellite_map_index, center, located_image, features_mean, last_frame, max_matches
