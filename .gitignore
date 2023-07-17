@@ -52,3 +52,8 @@ CATKIN_IGNORE
 git_stuff.txt
 
 results/matches*.*
+
+*.jpg
+*.png
+*.tif
+*.csv
