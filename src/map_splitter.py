@@ -8,8 +8,9 @@ import cv2
 SUB_SIZE = 1000
 
 
-def create_subpictures(image_name: str, line_size:int = SUB_SIZE):
+def create_subpictures(image_name: str, line_size:int = SUB_SIZE) -> list[str]:
     """Creates subpictures for a diven image."""
+    out_images = []
 
     # Open image and get dimensions.
     img = cv2.imread(image_name, cv2.IMREAD_UNCHANGED)
@@ -48,19 +49,30 @@ def create_subpictures(image_name: str, line_size:int = SUB_SIZE):
                 curr_y_size = ysize - y_offset
 
             # Give a name to the new subimage.
-            image_name_without_ext, _ = os.path.splitext(image_name)
-            output_image_name = f"{image_name_without_ext}_{i}_{j}"
+            image_name_without_ext, ext = os.path.splitext(image_name)
+            output_image_name = f"{image_name_without_ext}_{i}_{j}{ext}"
 
             # Create each sub image.
             gdal_create_subpic(x_offset, y_offset, curr_x_size, curr_y_size, image_name, output_image_name)
+            out_images.append(output_image_name)
+
+    return out_images
 
 
 def gdal_create_subpic(x: int, y: int, xsize: int, ysize:int, inname: str, outname: str):
     """Creates a subpicture of a given picture, starting at the given x,y, with the given sizes."""
-    full_outname = f"{outname}.png"
-    print(f"Executing GDAL translate: {x}, {y}, {xsize}, {ysize}, {inname}, {full_outname}")
-    result = subprocess.run(["gdal_translate", "-of", "PNG", "-srcwin", f"{x}", f"{y}", f"{xsize}", f"{ysize}", inname, full_outname])
+    print(f"Executing GDAL translate: {x}, {y}, {xsize}, {ysize}, {inname}, {outname}")
+    result = subprocess.run(["gdal_translate", "-srcwin", f"{x}", f"{y}", f"{xsize}", f"{ysize}", inname, outname])
     print(result)
+
+
+def gdal_convert_to_png(image_name: str):
+    """Converts the image to PNG."""
+    image_name_without_ext, _ = os.path.splitext(image_name)
+    outname = f"{image_name_without_ext}.png"
+    print(f"Executing GDAL translate to convert to PNG: {image_name}, {outname}")
+    result = subprocess.run(["gdal_translate", "-of", "PNG", outname])
+    print(result)    
 
 
 def main():
@@ -69,7 +81,16 @@ def main():
     args = parser.parse_args()
 
     print(f"Starting image splitting for {args.IMAGE_PATH}")
-    create_subpictures(args.IMAGE_PATH)    
+    out_images = create_subpictures(args.IMAGE_PATH)
+
+    print(f"Creating CSV with coordinates from each subimage.")
+    for _, image in out_images:
+        # TODO: function to create CSV with coordinates for each image.
+        pass
+
+    print(f"Converting images to PNG")
+    for _, image in out_images:
+        gdal_convert_to_png(image)
 
 
 if __name__ == "__main__":
