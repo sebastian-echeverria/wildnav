@@ -113,7 +113,7 @@ def csv_write_image_location(photo):
         dist_error =  hs.haversine(loc1,loc2,unit=Unit.METERS)
         lat_error = photo.latitude - photo.latitude_calculated
         lon_error = photo.longitude - photo.longitude_calculated
-        line = [photo_name, str(photo.latitude), str(photo.longitude), str(photo.latitude_calculated), str(photo.longitude_calculated), str(lat_error), str(lon_error), str(dist_error), str(drone_image.corrected), str(drone_image.matched), str(drone_image.gimball_yaw + drone_image.flight_yaw - 15)]
+        line = [photo_name, str(photo.latitude), str(photo.longitude), str(photo.latitude_calculated), str(photo.longitude_calculated), str(lat_error), str(lon_error), str(dist_error), str(photo.corrected), str(photo.matched), str(photo.gimball_yaw + photo.flight_yaw - 15)]
         writer.writerow(line)
 
 
