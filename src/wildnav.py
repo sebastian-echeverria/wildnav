@@ -1,23 +1,15 @@
 """Core module. Contains the main functions for the project."""
+import argparse
+
 import csv
 import cv2
 import haversine as hs
 from haversine import Unit
 import superglue_utils
 
-############################################################################################################
-# Important variables
-############################################################################################################
-
-map_path = "../assets/map/"
-map_filename = "../assets/map/map.csv" #  csv file with the sattelite geo tagged images
-drone_photos_filename = "../assets/query/photo_metadata.csv" # csv file with the geo tagged drone images;
-                                                             # the geo coordinates are only used to compare
-                                                             # the calculated coordinates with the real ones
-                                                             # after the feature matching
 
 ############################################################################################################
-# Class definitios
+# Class definitions
 ############################################################################################################
 class GeoPhotoDrone:
     """Stores a drone photo together with GNSS location
@@ -144,81 +136,108 @@ def calculate_geo_pose(geo_photo, center, features_mean,  shape):
 # MAIN
 #######################################
 
-#Read all the geo tagged images that make up the sattelite map used for reference
-geo_images_list = csv_read_sat_map(map_filename)
+def main(map_path: str, map_filename: str, drone_photos_filename: str):
+    #Read all the geo tagged images that make up the sattelite map used for reference
+    geo_images_list = csv_read_sat_map(map_filename)
 
-#Read all the geo tagged drone that will located in the map
-drone_images_list = csv_read_drone_images(drone_photos_filename)
+    #Read all the geo tagged drone that will located in the map
+    drone_images_list = csv_read_drone_images(drone_photos_filename)
 
-latitude_truth = []
-longitude_truth = []
-latitude_calculated = []
-longitude_calculated = []
+    latitude_truth = []
+    longitude_truth = []
+    latitude_calculated = []
+    longitude_calculated = []
 
-print(str(len(drone_images_list)) + " drone photos were loaded.")
-
-
-# Iterate through all the drone images
-for drone_image in drone_images_list:
-    latitude_truth.append(drone_image.latitude) # ground truth from drone image metadata for later comparison
-    longitude_truth.append(drone_image.longitude) # ground truth for later comparison
-    photo =  cv2.imread(drone_image.filename) # read the drone image
-    
-
-    max_features = 0 # keep track of the best match, more features = better match
-    located = False # flag to indicate if the drone image was located in the map
-    center = None # center of the drone image in the map
+    print(str(len(drone_images_list)) + " drone photos were loaded.")
 
 
-    rotations = [20] # list of rotations to try
-                     # keep in mind GNSS metadata could have wrong rotation angle
-                     # so we try to match the image with different (manually established) rotations
-
-    # Iterate through all the rotations, in this case only one rotation
-    for rot in rotations:
+    # Iterate through all the drone images
+    for drone_image in drone_images_list:
+        latitude_truth.append(drone_image.latitude) # ground truth from drone image metadata for later comparison
+        longitude_truth.append(drone_image.longitude) # ground truth for later comparison
+        photo =  cv2.imread(drone_image.filename) # read the drone image
         
-        # Write the query photo to the map folder
-        cv2.imwrite(map_path + "1_query_image.png", photo)
 
-        #Call superglue wrapper function to match the query image to the map
-        satellite_map_index_new, center_new, located_image_new, features_mean_new, query_image_new, feature_number = superglue_utils.match_image()
-        
-        # If the drone image was located in the map and the number of features is greater than the previous best match, then update the best match
-        # Sometimes the pixel center returned by the perspective transform exceeds 1, discard the resuls in that case
-        if (feature_number > max_features and center_new[0] < 1 and center_new[1] < 1):
-            satellite_map_index = satellite_map_index_new
-            center = center_new
-            located_image = located_image_new
-            features_mean = features_mean_new
-            query_image = query_image_new
-            max_features = feature_number
-            located = True
-    photo_name = drone_image.filename.split("/")[-1]
+        max_features = 0 # keep track of the best match, more features = better match
+        located = False # flag to indicate if the drone image was located in the map
+        center = None # center of the drone image in the map
 
-    # If the drone image was located in the map, calculate the geographical location of the drone image
-    if center != None and located:        
-        current_location = calculate_geo_pose(geo_images_list[satellite_map_index], center, features_mean, query_image.shape )
-        
-        # Write the results to the image result file with the best match
-        cv2.putText(located_image, "Calculated: " + str(current_location), org = (10,625),fontFace =  cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.8,  color = (0, 0, 0))
-        cv2.putText(located_image, "Ground truth: " + str(drone_image.latitude) + ", " + str(drone_image.longitude), org = (10,655),fontFace =  cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.8,  color = (0, 0, 0))
-        cv2.imwrite("../results/" + photo_name + "_located.png", located_image)
-        
-        print("Image " + str(photo_name) + " was successfully located in the map")
-        print("Calculated location: ", str(current_location[0:2]))
-        print("Ground Truth: ", drone_image.latitude, drone_image.longitude)   
-        
-        # Save the calculated location for later comparison with the ground truth
-        drone_image.matched = True
-        drone_image.latitude_calculated = current_location[0]
-        drone_image.longitude_calculated = current_location[1]
-        
-        latitude_calculated.append(drone_image.latitude_calculated)
-        longitude_calculated.append(drone_image.longitude_calculated)
 
-    else:
-        print("NOT MATCHED:", photo_name)
+        rotations = [20] # list of rotations to try
+                        # keep in mind GNSS metadata could have wrong rotation angle
+                        # so we try to match the image with different (manually established) rotations
 
-    # Write the results to the csv file    
-    csv_write_image_location(drone_image)
+        # Iterate through all the rotations, in this case only one rotation
+        for rot in rotations:
+            
+            # Write the query photo to the map folder
+            cv2.imwrite(map_path + "1_query_image.png", photo)
 
+            #Call superglue wrapper function to match the query image to the map
+            satellite_map_index_new, center_new, located_image_new, features_mean_new, query_image_new, feature_number = superglue_utils.match_image()
+            
+            # If the drone image was located in the map and the number of features is greater than the previous best match, then update the best match
+            # Sometimes the pixel center returned by the perspective transform exceeds 1, discard the resuls in that case
+            if (feature_number > max_features and center_new[0] < 1 and center_new[1] < 1):
+                satellite_map_index = satellite_map_index_new
+                center = center_new
+                located_image = located_image_new
+                features_mean = features_mean_new
+                query_image = query_image_new
+                max_features = feature_number
+                located = True
+        photo_name = drone_image.filename.split("/")[-1]
+
+        # If the drone image was located in the map, calculate the geographical location of the drone image
+        if center != None and located:        
+            current_location = calculate_geo_pose(geo_images_list[satellite_map_index], center, features_mean, query_image.shape )
+            
+            # Write the results to the image result file with the best match
+            cv2.putText(located_image, "Calculated: " + str(current_location), org = (10,625),fontFace =  cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.8,  color = (0, 0, 0))
+            cv2.putText(located_image, "Ground truth: " + str(drone_image.latitude) + ", " + str(drone_image.longitude), org = (10,655),fontFace =  cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.8,  color = (0, 0, 0))
+            cv2.imwrite("../results/" + photo_name + "_located.png", located_image)
+            
+            print("Image " + str(photo_name) + " was successfully located in the map")
+            print("Calculated location: ", str(current_location[0:2]))
+            print("Ground Truth: ", drone_image.latitude, drone_image.longitude)   
+            
+            # Save the calculated location for later comparison with the ground truth
+            drone_image.matched = True
+            drone_image.latitude_calculated = current_location[0]
+            drone_image.longitude_calculated = current_location[1]
+            
+            latitude_calculated.append(drone_image.latitude_calculated)
+            longitude_calculated.append(drone_image.longitude_calculated)
+
+        else:
+            print("NOT MATCHED:", photo_name)
+
+        # Write the results to the csv file    
+        csv_write_image_location(drone_image)
+
+
+if __name__ == "__main__":
+    ############################################################################################################
+    # Important variables
+    ############################################################################################################
+    map_path = "../assets/map/"
+    map_filename = "../assets/map/map.csv" #  csv file with the sattelite geo tagged images
+    drone_photos_filename = "../assets/query/photo_metadata.csv" # csv file with the geo tagged drone images;
+                                                                # the geo coordinates are only used to compare
+                                                                # the calculated coordinates with the real ones
+                                                                # after the feature matching
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--MAP_PATH")
+    parser.add_argument("--MAP_FILE_LIST")
+    parser.add_argument("--PHOTO_FILE_LIST")
+    args = parser.parse_args()
+
+    if args.MAP_PATH is not None:
+        map_path = args.MAP_PATH
+    if args.MAP_FILE_LIST is not None:
+        map_filename = args.MAP_FILE_LIST
+    if args.PHOTO_FILE_LIST is not None:
+        drone_photos_filename = args.PHOTO_FILE_LIST
+
+    main(map_path, map_filename, drone_photos_filename)

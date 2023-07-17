@@ -57,3 +57,4 @@ results/matches*.*
 *.png
 *.tif
 *.csv
+*.xml
