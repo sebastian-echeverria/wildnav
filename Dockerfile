@@ -17,6 +17,5 @@ RUN pip install gdal=="`gdal-config --version`.*"
 COPY src/* /app/
 COPY src/superglue_lib/ /app/superglue_lib/
 
-#ENTRYPOINT ["python3", "wildnav.py"]
 #ENTRYPOINT ["bash"]
-ENTRYPOINT ["python3", "map_splitter.py"]
+ENTRYPOINT ["python3"]

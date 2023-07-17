@@ -1,17 +1,17 @@
 import subprocess
 import os.path
+import argparse
+
 import cv2
 
-# 1. Get current Geotiff dimensions
-# 2. Split into 1000 to 1500 by 1000 to 1500 pieces
-# 3. Use gdal_translate through popen or similar.
-    # Use gdal to convert to PNG (-of) and to cut to pieces (-srcwin x y xsize ysize)
 
 SUB_SIZE = 1000
+
 
 def create_subpictures(image_name: str, line_size:int = SUB_SIZE):
     """Creates subpictures for a diven image."""
 
+    # Open image and get dimensions.
     img = cv2.imread(image_name, cv2.IMREAD_UNCHANGED)
     if img is None:
         raise Exception(f"Image {image_name} was not found.")
@@ -52,10 +52,10 @@ def create_subpictures(image_name: str, line_size:int = SUB_SIZE):
             output_image_name = f"{image_name_without_ext}_{i}_{j}"
 
             # Create each sub image.
-            create_subpic(x_offset, y_offset, curr_x_size, curr_y_size, image_name, output_image_name)
+            gdal_create_subpic(x_offset, y_offset, curr_x_size, curr_y_size, image_name, output_image_name)
 
 
-def create_subpic(x: int, y: int, xsize: int, ysize:int, inname: str, outname: str):
+def gdal_create_subpic(x: int, y: int, xsize: int, ysize:int, inname: str, outname: str):
     """Creates a subpicture of a given picture, starting at the given x,y, with the given sizes."""
     full_outname = f"{outname}.png"
     print(f"Executing GDAL translate: {x}, {y}, {xsize}, {ysize}, {inname}, {full_outname}")
@@ -63,6 +63,14 @@ def create_subpic(x: int, y: int, xsize: int, ysize:int, inname: str, outname: s
     print(result)
 
 
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("IMAGE_PATH")
+    args = parser.parse_args()
+
+    print(f"Starting image splitting for {args.IMAGE_PATH}")
+    create_subpictures(args.IMAGE_PATH)    
+
+
 if __name__ == "__main__":
-    print("Starting map splitting")
-    create_subpictures("../assets/map/nust/nust.tif")
+    main()
