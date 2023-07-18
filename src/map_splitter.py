@@ -84,34 +84,41 @@ def create_map_data_file(image_file: str, geotiff_images: list[str]):
     """Creates a CSV file with data about the parts of a map, from the provided GeoTIFF images."""
     image_path = os.path.dirname(image_file)
     filename = os.path.join(image_path, MAP_DATA_FILE)
-    with open(filename, 'w', encoding='UTF8') as f:
-        writer = csv.writer(f)
 
-        # Headers first.
-        header = ['Filename', 'Top_left_lat', 'Top_left_lon', 'Bottom_right_lat', 'Bottom_right_long']
-        writer.writerow(header)
+    try:
+        with open(filename, 'w', encoding='UTF8') as f:
+            writer = csv.writer(f)
 
-        # Now info for each image.
-        for image in geotiff_images:
-            image_name = os.path.basename(image)
-            geotiff_image = geotiff.GeoTIFFImage(image)
-            top_left_long, top_left_lat, _ = geotiff_image.top_left_coords()
-            bottom_right_long, bottom_right_lat, _ = geotiff_image.bottom_right_coords()
-            line = [image_name, str(top_left_lat), str(top_left_long), str(bottom_right_lat), str(bottom_right_long)]
-            writer.writerow(line)
+            # Headers first.
+            header = ['Filename', 'Top_left_lat', 'Top_left_lon', 'Bottom_right_lat', 'Bottom_right_long']
+            writer.writerow(header)
+
+            # Now info for each image.
+            for image in geotiff_images:
+                image_name = os.path.basename(image)
+                geotiff_image = geotiff.GeoTIFFImage(image)
+                top_left_long, top_left_lat, _ = geotiff_image.top_left_coords()
+                bottom_right_long, bottom_right_lat, _ = geotiff_image.bottom_right_coords()
+                line = [image_name, str(top_left_lat), str(top_left_long), str(bottom_right_lat), str(bottom_right_long)]
+                writer.writerow(line)
+    except RuntimeError as ex:
+        os.remove(filename)
+        print(f"Could not generate metadata from images, they may not be GeoTIFF files: {ex}")
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("IMAGE_PATH")
+    parser.add_argument("--no_tiff")
     args = parser.parse_args()
     image_path = args.IMAGE_PATH
 
     print(f"Starting image splitting for {image_path}")
     out_images = create_subpictures(image_path)
 
-    print(f"Creating CSV with coordinates from each subimage.")
-    create_map_data_file(image_path, out_images)
+    print(f"Creating CSV with coordinates from each subimage, if they are GeoTIFF images.")
+    if args.no_tiff is None:
+        create_map_data_file(image_path, out_images)
 
     print(f"Converting images to PNG")
     for image in out_images:
