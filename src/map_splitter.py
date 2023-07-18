@@ -2,10 +2,14 @@ import subprocess
 import os
 import os.path
 import argparse
+import csv
 
 import cv2
 
+import geotiff
 
+
+MAP_DATA_FILE = "map.csv"
 SUB_SIZE = 1000
 
 
@@ -76,18 +80,38 @@ def gdal_convert_to_png(image_name: str):
     print(result)    
 
 
+def create_map_data_file(image_file: str, geotiff_images: list[str]):
+    """Creates a CSV file with data about the parts of a map, from the provided GeoTIFF images."""
+    image_path = os.path.dirname(image_file)
+    filename = os.path.join(image_path, MAP_DATA_FILE)
+    with open(filename, 'w', encoding='UTF8') as f:
+        writer = csv.writer(f)
+
+        # Headers first.
+        header = ['Filename', 'Top_left_lat', 'Top_left_lon', 'Bottom_right_lat', 'Bottom_right_long']
+        writer.writerow(header)
+
+        # Now info for each image.
+        for image in geotiff_images:
+            image_name = os.path.basename(image)
+            geotiff_image = geotiff.GeoTIFFImage(image)
+            top_left_long, top_left_lat, _ = geotiff_image.top_left_coords()
+            bottom_right_long, bottom_right_lat, _ = geotiff_image.bottom_right_coords()
+            line = [image_name, str(top_left_lat), str(top_left_long), str(bottom_right_lat), str(bottom_right_long)]
+            writer.writerow(line)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("IMAGE_PATH")
     args = parser.parse_args()
+    image_path = args.IMAGE_PATH
 
-    print(f"Starting image splitting for {args.IMAGE_PATH}")
-    out_images = create_subpictures(args.IMAGE_PATH)
+    print(f"Starting image splitting for {image_path}")
+    out_images = create_subpictures(image_path)
 
     print(f"Creating CSV with coordinates from each subimage.")
-    for image in out_images:
-        # TODO: function to create CSV with coordinates for each image.
-        pass
+    create_map_data_file(image_path, out_images)
 
     print(f"Converting images to PNG")
     for image in out_images:

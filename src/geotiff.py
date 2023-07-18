@@ -20,15 +20,15 @@ class GeoTIFFImage():
         srsLatLong = srs.CloneGeogCS()
         self.coord_transform = osr.CoordinateTransformation(srs, srsLatLong)
 
-    def pixel_to_coord(self, col: float, row: float) -> Tuple[float, float]:
+    def pixel_to_coord(self, col: float, row: float) -> Tuple[float, float, float]:
         """Returns global coordinates to pixel center using base-0 raster index"""
         xp = self.a * col + self.b * row + self.c
         yp = self.d * col + self.e * row + self.f
         coords = self.coord_transform.TransformPoint(xp, yp, 0)
         return coords
     
-    def top_left_coords(self) -> Tuple[float, float]:
+    def top_left_coords(self) -> Tuple[float, float, float]:
         return self.pixel_to_coord(0, 0)
     
-    def bottom_right_coords(self) -> Tuple[float, float]:
+    def bottom_right_coords(self) -> Tuple[float, float, float]:
         return self.pixel_to_coord(self.gdal_image.RasterXSize, self.gdal_image.RasterYSize)
