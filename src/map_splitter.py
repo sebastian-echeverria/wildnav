@@ -95,7 +95,8 @@ def create_map_data_file(image_file: str, geotiff_images: list[str]):
 
             # Now info for each image.
             for image in geotiff_images:
-                image_name = os.path.basename(image)
+                # For each image, get the name and change ext to PNG, which will be the final output.
+                image_name = os.path.splitext(os.path.basename(image))[0] + ".png"
                 geotiff_image = geotiff.GeoTIFFImage(image)
                 top_left_long, top_left_lat, _ = geotiff_image.top_left_coords()
                 bottom_right_long, bottom_right_lat, _ = geotiff_image.bottom_right_coords()
