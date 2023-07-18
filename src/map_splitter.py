@@ -1,4 +1,5 @@
 import subprocess
+import os
 import os.path
 import argparse
 
@@ -71,7 +72,7 @@ def gdal_convert_to_png(image_name: str):
     image_name_without_ext, _ = os.path.splitext(image_name)
     outname = f"{image_name_without_ext}.png"
     print(f"Executing GDAL translate to convert to PNG: {image_name}, {outname}")
-    result = subprocess.run(["gdal_translate", "-of", "PNG", outname])
+    result = subprocess.run(["gdal_translate", "-of", "PNG", image_name, outname, "--config", "GDAL_PAM_ENABLED", "NO"])
     print(result)    
 
 
@@ -84,13 +85,17 @@ def main():
     out_images = create_subpictures(args.IMAGE_PATH)
 
     print(f"Creating CSV with coordinates from each subimage.")
-    for _, image in out_images:
+    for image in out_images:
         # TODO: function to create CSV with coordinates for each image.
         pass
 
     print(f"Converting images to PNG")
-    for _, image in out_images:
+    for image in out_images:
         gdal_convert_to_png(image)
+
+    print(f"Removing intermediate images")
+    for image in out_images:
+        os.remove(image)
 
 
 if __name__ == "__main__":

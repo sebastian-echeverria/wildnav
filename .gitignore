@@ -58,3 +58,4 @@ results/matches*.*
 *.tif
 *.csv
 *.xml
+.DS_Store
