@@ -1,11 +1,26 @@
 """Core module. Contains the main functions for the project."""
 import argparse
+import os.path
 
 import csv
 import cv2
 import haversine as hs
 from haversine import Unit
 import superglue_utils
+
+
+############################################################################################################
+# Important variables
+############################################################################################################
+
+DEFAULT_MAP_PATH = "../assets/map/"
+DEFAULT_PHOTOS_PATH = "../assets/query/"
+
+MAP_DATA_FILE = "map.csv" #  csv file with the sattelite geo tagged images
+PHOTOS_DATA_FILE = "photo_metadata.csv" # csv file with the geo tagged drone images;
+                                                            # the geo coordinates are only used to compare
+                                                            # the calculated coordinates with the real ones
+                                                            # after the feature matching
 
 
 ############################################################################################################
@@ -55,14 +70,14 @@ class GeoPhoto:
 ############################################################################################################
 # Functions for data writing and reading csv files
 ############################################################################################################
-def csv_read_drone_images(filename):
+def csv_read_drone_images(photo_path):
     """Builds a list with drone geo tagged photos by reading a csv file with this format:
     Filename, Top_left_lat,Top_left_lon,Bottom_right_lat,Bottom_right_long
     "photo_name.png",60.506787,22.311631,60.501037,22.324467
     """
     geo_list_drone = []
-    photo_path = "../assets/query/"
-    with open(filename) as csv_file:
+    photos_data_filename = os.path.join(photo_path, PHOTOS_DATA_FILE)
+    with open(photos_data_filename) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
         for row in csv_reader:
@@ -71,38 +86,42 @@ def csv_read_drone_images(filename):
                 line_count += 1
             else:                
                 #img = cv2.imread(photo_path + row[0],0)
-                geo_photo = GeoPhotoDrone(photo_path + row[0], 0, float(row[1]), float(row[2]), float(row[3]), float(row[4]), float(row[5]), float(row[6]), float(row[7]), float(row[8]), float(row[9]))
+                full_image_path = os.path.join(photo_path, row[0])
+                geo_photo = GeoPhotoDrone(full_image_path, 0, float(row[1]), float(row[2]), float(row[3]), float(row[4]), float(row[5]), float(row[6]), float(row[7]), float(row[8]), float(row[9]))
                 geo_list_drone.append(geo_photo)
                 line_count += 1
 
         print(f'Processed {line_count} lines.')
         return geo_list_drone
 
-def csv_read_sat_map(filename):
+
+def csv_read_sat_map(map_path):
     """Builds a list with satellite geo tagged photos by reading a csv file with this format:
     Filename, Top_left_lat,Top_left_lon,Bottom_right_lat,Bottom_right_long
     "photo_name.png",60.506787,22.311631,60.501037,22.324467
     """
     geo_list = []
-    photo_path = "../assets/map/"
-    print("opening: ",filename)
-    with open(filename) as csv_file:
+    map_data_filename = os.path.join(map_path, MAP_DATA_FILE)
+    print("opening: ", map_data_filename)
+    with open(map_data_filename) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
         line_count = 0
         for row in csv_reader:
             if line_count == 0:
                 print(f'Column names are {", ".join(row)}')
                 line_count += 1
-            else:            
-                img = cv2.imread(photo_path + row[0],0)
-                geo_photo = GeoPhoto(photo_path + row[0],img,(float(row[1]),float(row[2])), (float(row[3]), float(row[4])))
+            else:
+                full_image_path = os.path.join(map_path, row[0])
+                img = cv2.imread(full_image_path,0)
+                geo_photo = GeoPhoto(full_image_path, img, (float(row[1]),float(row[2])), (float(row[3]), float(row[4])))
                 geo_list.append(geo_photo)
                 line_count += 1
 
         print(f'Processed {line_count} lines.')
         geo_list.sort() # sort alphabetically by filename to ensure that the feature matcher return the right index of the matched sat image
         return geo_list
-    
+
+
 def csv_write_image_location(photo):
     header = ['Filename', 'Latitude', 'Longitude', 'Calculated_Latitude', 'Calculated_Longitude', 'Latitude_Error', 'Longitude_Error', 'Meters_Error', 'Corrected', 'Matched']
     with open('../results/calculated_coordinates.csv', 'a', encoding='UTF8') as f:
@@ -136,12 +155,12 @@ def calculate_geo_pose(geo_photo, center, features_mean,  shape):
 # MAIN
 #######################################
 
-def main(map_path: str, map_filename: str, drone_photos_filename: str):
+def main(map_path: str, drone_photos_path: str, ):
     #Read all the geo tagged images that make up the sattelite map used for reference
-    geo_images_list = csv_read_sat_map(map_filename)
+    geo_images_list = csv_read_sat_map(map_path)
 
     #Read all the geo tagged drone that will located in the map
-    drone_images_list = csv_read_drone_images(drone_photos_filename)
+    drone_images_list = csv_read_drone_images(drone_photos_path)
 
     latitude_truth = []
     longitude_truth = []
@@ -217,27 +236,18 @@ def main(map_path: str, map_filename: str, drone_photos_filename: str):
 
 
 if __name__ == "__main__":
-    ############################################################################################################
-    # Important variables
-    ############################################################################################################
-    map_path = "../assets/map/"
-    map_filename = "../assets/map/map.csv" #  csv file with the sattelite geo tagged images
-    drone_photos_filename = "../assets/query/photo_metadata.csv" # csv file with the geo tagged drone images;
-                                                                # the geo coordinates are only used to compare
-                                                                # the calculated coordinates with the real ones
-                                                                # after the feature matching
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--MAP_PATH")
-    parser.add_argument("--MAP_FILE_LIST")
-    parser.add_argument("--PHOTO_FILE_LIST")
+    parser.add_argument("--PHOTO_PATH")
     args = parser.parse_args()
+
+    map_path = DEFAULT_MAP_PATH
+    drone_photos_path = DEFAULT_PHOTOS_PATH
 
     if args.MAP_PATH is not None:
         map_path = args.MAP_PATH
-    if args.MAP_FILE_LIST is not None:
-        map_filename = args.MAP_FILE_LIST
-    if args.PHOTO_FILE_LIST is not None:
-        drone_photos_filename = args.PHOTO_FILE_LIST
+    if args.PHOTO_PATH is not None:
+        drone_photos_path = args.PHOTO_PATH
 
-    main(map_path, map_filename, drone_photos_filename)
+    main(map_path, drone_photos_path)
