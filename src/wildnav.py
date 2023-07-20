@@ -128,19 +128,21 @@ def csv_read_sat_map(map_path):
         return geo_list
 
 
-def csv_write_image_location(photo, results_path: str):
+def csv_write_image_location(photos, results_path: str):
     header = ['Filename', 'Latitude', 'Longitude', 'Calculated_Latitude', 'Calculated_Longitude', 'Latitude_Error', 'Longitude_Error', 'Meters_Error', 'Corrected', 'Matched']
     with open(os.path.join(results_path, "calculated_coordinates.csv"), 'a', encoding='UTF8') as f:
         writer = csv.writer(f)
         writer.writerow(header)
-        photo_name = photo.filename.split("/")[-1]
-        loc1 = ( photo.latitude, photo.longitude)
-        loc2 = ( photo.latitude_calculated, photo.longitude_calculated)
-        dist_error =  hs.haversine(loc1,loc2,unit=Unit.METERS)
-        lat_error = photo.latitude - photo.latitude_calculated
-        lon_error = photo.longitude - photo.longitude_calculated
-        line = [photo_name, str(photo.latitude), str(photo.longitude), str(photo.latitude_calculated), str(photo.longitude_calculated), str(lat_error), str(lon_error), str(dist_error), str(photo.corrected), str(photo.matched), str(photo.gimball_yaw + photo.flight_yaw - 15)]
-        writer.writerow(line)
+
+        for photo in photos:
+            photo_name = photo.filename.split("/")[-1]
+            loc1 = ( photo.latitude, photo.longitude)
+            loc2 = ( photo.latitude_calculated, photo.longitude_calculated)
+            dist_error =  hs.haversine(loc1,loc2,unit=Unit.METERS)
+            lat_error = photo.latitude - photo.latitude_calculated
+            lon_error = photo.longitude - photo.longitude_calculated
+            line = [photo_name, str(photo.latitude), str(photo.longitude), str(photo.latitude_calculated), str(photo.longitude_calculated), str(lat_error), str(lon_error), str(dist_error), str(photo.corrected), str(photo.matched), str(photo.gimball_yaw + photo.flight_yaw - 15)]
+            writer.writerow(line)
 
 
 def calculate_geo_pose(geo_photo, center, features_mean,  shape):
@@ -246,8 +248,8 @@ def main(base_path: str):
         else:
             print("NOT MATCHED:", photo_name)
 
-        # Write the results to the csv file    
-        csv_write_image_location(drone_image, results_path)
+    # Write the results to the csv file    
+    csv_write_image_location(drone_images_list, results_path)
 
 
 if __name__ == "__main__":
