@@ -178,13 +178,15 @@ def main(map_path: str, drone_photos_path: str, ):
         located = False # flag to indicate if the drone image was located in the map
         center = None # center of the drone image in the map
 
-        rotations = [20] # list of rotations to try
+        rotations = [4] # list of rotations to try
                         # keep in mind GNSS metadata could have wrong rotation angle
                         # so we try to match the image with different (manually established) rotations
 
-        # Iterate through all the rotations, in this case only one rotation
-        # TODO: Code is not doing anything about rotations. It is not using csv data loaded into drone_images, nor is it testing multiple manual rotiations, as comment above suggests.
-        for rot in rotations:
+        # Iterate through all the rotations, right now it just means to rotate it 4 times in 90 degrees.
+        for i in range(0, rotations[0]):
+            # Rotate image.
+            print(f"Rotation {i + 1}")
+            photo = cv2.rotate(photo, cv2.ROTATE_90_CLOCKWISE)
             
             # Write the query photo to the map folder
             cv2.imwrite(os.path.join(map_path, "1_query_image.png"), photo)
