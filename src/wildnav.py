@@ -1,11 +1,15 @@
 """Core module. Contains the main functions for the project."""
 import argparse
 import os.path
-
+from pathlib import Path
+import os
+import glob
 import csv
+
 import cv2
 import haversine as hs
 from haversine import Unit
+
 import superglue_utils
 
 
@@ -175,6 +179,12 @@ def main(base_path: str):
     longitude_calculated = []
 
     print(str(len(drone_images_list)) + " drone photos were loaded.")
+
+    print('==> Will write outputs to {}'.format(results_path))
+    Path(results_path).mkdir(exist_ok=True)
+    files = glob.glob(os.path.join(results_path, "*"))
+    for f in files:
+        os.remove(f)    
 
     # Iterate through all the drone images
     for drone_image in drone_images_list:
