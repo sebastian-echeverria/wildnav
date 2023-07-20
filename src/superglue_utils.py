@@ -3,7 +3,8 @@ import cv2
 import matplotlib.cm as cm
 import torch
 import numpy as np
-
+import os
+import glob
 
 from superglue_lib.models.matching import Matching
 from superglue_lib.models.utils import (AverageTimer, VideoStreamer,
@@ -81,6 +82,11 @@ def match_image(input: str):
     if output_dir is not None:
         print('==> Will write outputs to {}'.format(output_dir))
         Path(output_dir).mkdir(exist_ok=True)
+
+        # Clean previous results.
+        files = glob.glob(os.path.join(output_dir, "*"))
+        for f in files:
+            os.remove(f)
 
     # Create a window to display the demo.
     if not no_display:
