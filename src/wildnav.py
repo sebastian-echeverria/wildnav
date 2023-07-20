@@ -13,8 +13,10 @@ import superglue_utils
 # Important variables
 ############################################################################################################
 
-DEFAULT_MAP_PATH = "../assets/map/"
-DEFAULT_PHOTOS_PATH = "../assets/query/"
+DEFAULT_BASE_PATH = "../assets/"
+DEFAULT_MAP_FOLDER = "map/"
+DEFAULT_PHOTOS_FOLDER = "query/"
+DEFAULT_RESULTS_FOLDER = "results/"
 
 MAP_DATA_FILE = "map.csv" #  csv file with the sattelite geo tagged images
 PHOTOS_DATA_FILE = "photo_metadata.csv" # csv file with the geo tagged drone images;
@@ -122,10 +124,11 @@ def csv_read_sat_map(map_path):
         return geo_list
 
 
-def csv_write_image_location(photo):
+def csv_write_image_location(photo, results_path: str):
     header = ['Filename', 'Latitude', 'Longitude', 'Calculated_Latitude', 'Calculated_Longitude', 'Latitude_Error', 'Longitude_Error', 'Meters_Error', 'Corrected', 'Matched']
-    with open('../results/calculated_coordinates.csv', 'a', encoding='UTF8') as f:
-        writer = csv.writer(f)        
+    with open(os.path.join(results_path, "calculated_coordinates.csv"), 'a', encoding='UTF8') as f:
+        writer = csv.writer(f)
+        writer.writerow(header)
         photo_name = photo.filename.split("/")[-1]
         loc1 = ( photo.latitude, photo.longitude)
         loc2 = ( photo.latitude_calculated, photo.longitude_calculated)
@@ -155,9 +158,12 @@ def calculate_geo_pose(geo_photo, center, features_mean,  shape):
 # MAIN
 #######################################
 
-def main(map_path: str, drone_photos_path: str, ):
-    print(f"Using map path: {map_path}")
-    print(f"Using drone photo path: {drone_photos_path}")
+def main(base_path: str):
+    print(f"Using base path: {base_path}")
+
+    map_path = os.path.join(base_path, DEFAULT_MAP_FOLDER)
+    drone_photos_path = os.path.join(base_path, DEFAULT_PHOTOS_FOLDER)
+    results_path = os.path.join(base_path, DEFAULT_RESULTS_FOLDER)
 
     #Read all the geo tagged images that make up the sattelite map used for reference
     geo_images_list = csv_read_sat_map(map_path)
@@ -192,7 +198,7 @@ def main(map_path: str, drone_photos_path: str, ):
             cv2.imwrite(os.path.join(map_path, "1_query_image.png"), photo)
 
             #Call superglue wrapper function to match the query image to the map
-            satellite_map_index_new, center_new, located_image_new, features_mean_new, query_image_new, feature_number = superglue_utils.match_image(map_path)
+            satellite_map_index_new, center_new, located_image_new, features_mean_new, query_image_new, feature_number = superglue_utils.match_image(map_path, results_path)
             
             # If the drone image was located in the map and the number of features is greater than the previous best match, then update the best match
             # Sometimes the pixel center returned by the perspective transform exceeds 1, discard the resuls in that case
@@ -213,7 +219,7 @@ def main(map_path: str, drone_photos_path: str, ):
             # Write the results to the image result file with the best match
             cv2.putText(located_image, "Calculated: " + str(current_location), org = (10,625),fontFace =  cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.8,  color = (0, 0, 0))
             cv2.putText(located_image, "Ground truth: " + str(drone_image.latitude) + ", " + str(drone_image.longitude), org = (10,655),fontFace =  cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.8,  color = (0, 0, 0))
-            cv2.imwrite("../results/" + photo_name + "_located.png", located_image)
+            cv2.imwrite(os.path.join(results_path, photo_name + "_located.png"), located_image)
             
             print("Image " + str(photo_name) + " was successfully located in the map")
             print("Calculated location: ", str(current_location[0:2]))
@@ -231,22 +237,18 @@ def main(map_path: str, drone_photos_path: str, ):
             print("NOT MATCHED:", photo_name)
 
         # Write the results to the csv file    
-        csv_write_image_location(drone_image)
+        csv_write_image_location(drone_image, results_path)
 
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--MAP_PATH")
-    parser.add_argument("--PHOTO_PATH")
+    parser.add_argument("--path")
     args = parser.parse_args()
 
-    map_path = DEFAULT_MAP_PATH
-    drone_photos_path = DEFAULT_PHOTOS_PATH
+    base_path = DEFAULT_BASE_PATH
 
-    if args.MAP_PATH is not None:
-        map_path = args.MAP_PATH
-    if args.PHOTO_PATH is not None:
-        drone_photos_path = args.PHOTO_PATH
+    if args.path is not None:
+        base_path = args.path
 
-    main(map_path, drone_photos_path)
+    main(base_path)

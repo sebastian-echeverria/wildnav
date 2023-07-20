@@ -13,12 +13,11 @@ from superglue_lib.models.utils import (AverageTimer, VideoStreamer,
 torch.set_grad_enabled(False)
 
 
-def match_image(input: str): 
+def match_image(input: str, output_dir: str): 
     """
     Wrapper function for matching two images, provides an interface to superglue model
     """
     center = None
-    output_dir = "../results"
     image_glob = ['*.png', '*.jpg', '*.jpeg', '*.JPG']
     skip = 1
     max_length = 1000000
