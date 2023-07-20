@@ -156,41 +156,38 @@ def calculate_geo_pose(geo_photo, center, features_mean,  shape):
 #######################################
 
 def main(map_path: str, drone_photos_path: str, ):
+    print(f"Using map path: {map_path}")
+    print(f"Using drone photo path: {drone_photos_path}")
+
     #Read all the geo tagged images that make up the sattelite map used for reference
     geo_images_list = csv_read_sat_map(map_path)
 
     #Read all the geo tagged drone that will located in the map
     drone_images_list = csv_read_drone_images(drone_photos_path)
 
-    latitude_truth = []
-    longitude_truth = []
     latitude_calculated = []
     longitude_calculated = []
 
     print(str(len(drone_images_list)) + " drone photos were loaded.")
 
-
     # Iterate through all the drone images
     for drone_image in drone_images_list:
-        latitude_truth.append(drone_image.latitude) # ground truth from drone image metadata for later comparison
-        longitude_truth.append(drone_image.longitude) # ground truth for later comparison
-        photo =  cv2.imread(drone_image.filename) # read the drone image
-        
+        photo = cv2.imread(drone_image.filename) # read the drone image
 
         max_features = 0 # keep track of the best match, more features = better match
         located = False # flag to indicate if the drone image was located in the map
         center = None # center of the drone image in the map
-
 
         rotations = [20] # list of rotations to try
                         # keep in mind GNSS metadata could have wrong rotation angle
                         # so we try to match the image with different (manually established) rotations
 
         # Iterate through all the rotations, in this case only one rotation
+        # TODO: Code is not doing anything about rotations. It is not using csv data loaded into drone_images, nor is it testing multiple manual rotiations, as comment above suggests.
         for rot in rotations:
             
             # Write the query photo to the map folder
-            cv2.imwrite(map_path + "1_query_image.png", photo)
+            cv2.imwrite(os.path.join(map_path, "1_query_image.png"), photo)
 
             #Call superglue wrapper function to match the query image to the map
             satellite_map_index_new, center_new, located_image_new, features_mean_new, query_image_new, feature_number = superglue_utils.match_image(map_path)
