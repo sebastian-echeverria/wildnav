@@ -106,7 +106,7 @@ def csv_read_drone_images(photo_path):
     else:
         # If there isn't, just load all image files in the folder and set all data to 0.
         print(f"Getting all images at {photo_path}")
-        for full_image_path in glob.glob(f"{photo_path}/*.*"):
+        for full_image_path in sorted(glob.glob(f"{photo_path}/*.*")):
             geo_photo = GeoPhotoDrone(full_image_path, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
             geo_list_drone.append(geo_photo)
 
