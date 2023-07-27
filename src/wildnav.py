@@ -157,6 +157,15 @@ def csv_write_image_location(photos, results_path: str):
             writer.writerow(line)
 
 
+def csv_write_simple_output(photos, results_path: str):
+    # Writes a simplified output with just calculated coordinates, one per row.
+    with open(os.path.join(results_path, "output.csv"), 'a', encoding='UTF8') as f:
+        writer = csv.writer(f)
+        for photo in photos:
+            line = [str(photo.latitude_calculated), str(photo.longitude_calculated)]
+            writer.writerow(line)            
+
+
 def calculate_geo_pose(geo_photo, center, features_mean,  shape):
     """
     Calculates the geographical location of the drone image.
@@ -262,6 +271,7 @@ def main(base_path: str):
 
     # Write the results to the csv file    
     csv_write_image_location(drone_images_list, results_path)
+    csv_write_simple_output(drone_images_list, results_path)
 
 
 if __name__ == "__main__":
