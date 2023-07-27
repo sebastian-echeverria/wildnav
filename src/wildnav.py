@@ -82,10 +82,12 @@ def csv_read_drone_images(photo_path):
     "photo_name.png",60.506787,22.311631,60.501037,22.324467
     """
     geo_list_drone = []
+    print(f"Loading UAV images from {photo_path}")
     photos_data_filename = os.path.join(photo_path, PHOTOS_DATA_FILE)
 
     if os.path.isfile(photos_data_filename):
         # If there is a file with photo details, load info from there.
+        print(f"Getting image info from {photos_data_filename}")
         with open(photos_data_filename) as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             line_count = 0
@@ -103,6 +105,7 @@ def csv_read_drone_images(photo_path):
             print(f'Processed {line_count} lines.')
     else:
         # If there isn't, just load all image files in the folder and set all data to 0.
+        print(f"Getting all images at {photo_path}")
         for full_image_path in glob.glob(f"{photo_path}/*.*"):
             geo_photo = GeoPhotoDrone(full_image_path, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
             geo_list_drone.append(geo_photo)
