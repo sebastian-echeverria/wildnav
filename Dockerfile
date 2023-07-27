@@ -10,8 +10,8 @@ RUN apt-get install -y libgl1 libpq-dev gdal-bin libgdal-dev
 # Dependencies.
 WORKDIR /app
 COPY requirements.txt /app/
-RUN pip install -r requirements.txt
-RUN pip install gdal=="`gdal-config --version`.*"
+RUN pip --default-timeout=1000 install -r requirements.txt
+RUN pip --default-timeout=1000 install gdal=="`gdal-config --version`.*"
 
 # Code.
 COPY src/* /app/
