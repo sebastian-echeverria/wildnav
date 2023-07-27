@@ -83,22 +83,31 @@ def csv_read_drone_images(photo_path):
     """
     geo_list_drone = []
     photos_data_filename = os.path.join(photo_path, PHOTOS_DATA_FILE)
-    with open(photos_data_filename) as csv_file:
-        csv_reader = csv.reader(csv_file, delimiter=',')
-        line_count = 0
-        for row in csv_reader:
-            if line_count == 0:
-                print(f'Column names are {", ".join(row)}')
-                line_count += 1
-            else:                
-                #img = cv2.imread(photo_path + row[0],0)
-                full_image_path = os.path.join(photo_path, row[0])
-                geo_photo = GeoPhotoDrone(full_image_path, 0, float(row[1]), float(row[2]), float(row[3]), float(row[4]), float(row[5]), float(row[6]), float(row[7]), float(row[8]), float(row[9]))
-                geo_list_drone.append(geo_photo)
-                line_count += 1
 
-        print(f'Processed {line_count} lines.')
-        return geo_list_drone
+    if os.path.isfile(photos_data_filename):
+        # If there is a file with photo details, load info from there.
+        with open(photos_data_filename) as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            line_count = 0
+            for row in csv_reader:
+                if line_count == 0:
+                    print(f'Column names are {", ".join(row)}')
+                    line_count += 1
+                else:                
+                    #img = cv2.imread(photo_path + row[0],0)
+                    full_image_path = os.path.join(photo_path, row[0])
+                    geo_photo = GeoPhotoDrone(full_image_path, 0, float(row[1]), float(row[2]), float(row[3]), float(row[4]), float(row[5]), float(row[6]), float(row[7]), float(row[8]), float(row[9]))
+                    geo_list_drone.append(geo_photo)
+                    line_count += 1
+
+            print(f'Processed {line_count} lines.')
+    else:
+        # If there isn't, just load all image files in the folder and set all data to 0.
+        for full_image_path in glob.glob(f"{photo_path}/*.*"):
+            geo_photo = GeoPhotoDrone(full_image_path, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+            geo_list_drone.append(geo_photo)
+
+    return geo_list_drone
 
 
 def csv_read_sat_map(map_path):
