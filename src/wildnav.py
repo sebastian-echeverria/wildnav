@@ -186,6 +186,7 @@ def calculate_geo_pose(geo_photo, center, features_mean,  shape):
 #######################################
 
 def main(base_path: str):
+    print(f"Running in {os. getcwd()}")
     print(f"Using base path: {base_path}")
 
     map_path = os.path.join(base_path, DEFAULT_MAP_FOLDER)
