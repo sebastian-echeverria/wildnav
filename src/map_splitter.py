@@ -10,12 +10,13 @@ import geotiff
 
 
 MAP_DATA_FILE = "map.csv"
-SUB_SIZE = 1000
+DEFAULT_SUB_SIZE = 1000
 
 
-def create_subpictures(image_name: str, line_size:int = SUB_SIZE) -> list[str]:
+def create_subpictures(image_name: str, line_size:int = DEFAULT_SUB_SIZE) -> list[str]:
     """Creates subpictures for a diven image."""
     out_images = []
+    print(f"Creating subimages of max size {line_size}x{line_size}")
 
     # Open image and get dimensions.
     img = cv2.imread(image_name, cv2.IMREAD_UNCHANGED)
@@ -110,12 +111,14 @@ def create_map_data_file(image_file: str, geotiff_images: list[str]):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("IMAGE_PATH")
+    parser.add_argument("--size")
     parser.add_argument("--no_tiff")
     args = parser.parse_args()
     image_path = args.IMAGE_PATH
 
     print(f"Starting image splitting for {image_path}")
-    out_images = create_subpictures(image_path)
+    size = int(args.size) if args.size is not None else DEFAULT_SUB_SIZE
+    out_images = create_subpictures(image_path, size)
 
     print(f"Creating CSV with coordinates from each subimage, if they are GeoTIFF images.")
     if args.no_tiff is None:
