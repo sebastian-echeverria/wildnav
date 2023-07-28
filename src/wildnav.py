@@ -212,7 +212,11 @@ def main(base_path: str):
 
     # Iterate through all the drone images
     for drone_image in drone_images_list:
+        print(f"Opening image {drone_image}")
         photo = cv2.imread(drone_image.filename) # read the drone image
+        if photo is None or photo.size == 0:
+            print(f"Image {drone_image} could not be opened; ignoring.")
+            continue
 
         max_features = 0 # keep track of the best match, more features = better match
         located = False # flag to indicate if the drone image was located in the map
