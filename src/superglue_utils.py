@@ -114,11 +114,13 @@ def match_image(input: str, output_dir: str):
         timer.update('forward')
 
         valid = matches > -1
+        matches_valid = matches[valid]
         mkpts0 = kpts0[valid]
-        mkpts1 = kpts1[matches[valid]]
+        mkpts1 = kpts1[matches_valid]
+        confidence_valid = confidence[valid]
 
         """
-        Find image in sattelite map with findHomography        
+        Find image in satellite map with findHomography        
         """
         #At least 4 matched features are needed to compute homography
         MATCHED = False
@@ -154,7 +156,7 @@ def match_image(input: str, output_dir: str):
         else:
             print("Photos were NOT matched")
       
-        color = cm.jet(confidence[valid])
+        color = cm.jet(confidence_valid)
         k_thresh = matching.superpoint.config['keypoint_threshold']
         m_thresh = matching.superglue.config['match_threshold']
         small_text = [
@@ -216,6 +218,6 @@ def match_image(input: str, output_dir: str):
     
     vs.cleanup()
     
-    return satellite_map_index, center, located_image, features_mean, last_frame, max_matches
+    return satellite_map_index, center, located_image, features_mean, last_frame, max_matches, matches_valid, confidence_valid
     
 

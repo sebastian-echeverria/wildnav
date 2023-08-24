@@ -54,6 +54,9 @@ class GeoPhotoDrone:
         self.corrected = False
         self.matched = False
 
+        self.matches = []
+        self.confidence = []
+
     def __str__(self):
         return "%s; \nlatitude: %f \nlongitude: %f \naltitude: %f \ngimball_roll: %f \ngimball_yaw: %f \ngimball_pitch: %f \nflight_roll: %f \nflight_yaw: %f \nflight_pitch: %f" % (self.filename, self.latitude, self.longitude, self.altitude, self.gimball_roll, self.gimball_yaw, self.gimball_pitch, self.flight_roll, self.flight_yaw, self.flight_pitch )
         
@@ -153,7 +156,11 @@ def csv_write_image_location(photos, results_path: str):
             dist_error =  hs.haversine(loc1,loc2,unit=Unit.METERS)
             lat_error = photo.latitude - photo.latitude_calculated
             lon_error = photo.longitude - photo.longitude_calculated
-            line = [photo_name, str(photo.latitude), str(photo.longitude), str(photo.latitude_calculated), str(photo.longitude_calculated), str(lat_error), str(lon_error), str(dist_error), str(photo.corrected), str(photo.matched), str(photo.gimball_yaw + photo.flight_yaw - 15)]
+            matches = f"{photo.matches}"
+            confidence = f"{photo.confidence}"
+            line = [photo_name, str(photo.latitude), str(photo.longitude), str(photo.latitude_calculated), str(photo.longitude_calculated), \
+                    str(lat_error), str(lon_error), str(dist_error), str(photo.corrected), str(photo.matched), str(photo.gimball_yaw + photo.flight_yaw - 15), \
+                    matches, confidence]
             writer.writerow(line)
 
 
@@ -221,6 +228,8 @@ def main(base_path: str):
         max_features = 0 # keep track of the best match, more features = better match
         located = False # flag to indicate if the drone image was located in the map
         center = None # center of the drone image in the map
+        matches = [] # matches found
+        confidence = [] # confidence for each match
 
         rotations = [4] # list of rotations to try
                         # keep in mind GNSS metadata could have wrong rotation angle
@@ -236,7 +245,7 @@ def main(base_path: str):
             cv2.imwrite(os.path.join(map_path, "1_query_image.png"), photo)
 
             #Call superglue wrapper function to match the query image to the map
-            satellite_map_index_new, center_new, located_image_new, features_mean_new, query_image_new, feature_number = superglue_utils.match_image(map_path, results_path)
+            satellite_map_index_new, center_new, located_image_new, features_mean_new, query_image_new, feature_number, matches_new, confidence_new = superglue_utils.match_image(map_path, results_path)
             
             # If the drone image was located in the map and the number of features is greater than the previous best match, then update the best match
             # Sometimes the pixel center returned by the perspective transform exceeds 1, discard the resuls in that case
@@ -247,6 +256,8 @@ def main(base_path: str):
                 features_mean = features_mean_new
                 query_image = query_image_new
                 max_features = feature_number
+                matches = matches_new
+                confidence = confidence_new
                 located = True
         photo_name = drone_image.filename.split("/")[-1]
 
@@ -261,12 +272,16 @@ def main(base_path: str):
             
             print("Image " + str(photo_name) + " was successfully located in the map")
             print("Calculated location: ", str(current_location[0:2]))
-            print("Ground Truth: ", drone_image.latitude, drone_image.longitude)   
+            print("Ground Truth: ", drone_image.latitude, drone_image.longitude)
+            print(f"Matches: {matches}")
+            print(f"Confidence: {confidence}")
             
             # Save the calculated location for later comparison with the ground truth
             drone_image.matched = True
             drone_image.latitude_calculated = current_location[0]
             drone_image.longitude_calculated = current_location[1]
+            drone_image.matches = matches
+            drone_image.confidence = confidence
             
             latitude_calculated.append(drone_image.latitude_calculated)
             longitude_calculated.append(drone_image.longitude_calculated)
