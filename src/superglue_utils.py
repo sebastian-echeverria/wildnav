@@ -92,18 +92,18 @@ def match_image(input: str, output_dir: str):
     located_image = None # the image of the satellite photo where the best match was found
     features_mean = [0,0] # mean values of feature pixel coordinates 
 
+    matches_to_return = []
+    confidence_to_return = []
+
     while True:
         
         #current sattelite image to be matched
         frame, ret = vs.next_frame()
         if not ret:
-            print('Finished demo_superglue.py')
+            print('Finished checking all map images')
             break
         timer.update('data')
         stem0, stem1 = last_image_id, vs.i - 1
-
-
-        
 
         frame_tensor = frame2tensor(frame, device)
         pred = matching({**last_data, 'image1': frame_tensor})
@@ -118,6 +118,9 @@ def match_image(input: str, output_dir: str):
         mkpts0 = kpts0[valid]
         mkpts1 = kpts1[matches_valid]
         confidence_valid = confidence[valid]
+
+        print(f"Matches: {matches_valid}")
+        print(f"Confidence: {confidence_valid}")
 
         """
         Find image in satellite map with findHomography        
@@ -151,7 +154,10 @@ def match_image(input: str, output_dir: str):
                 center = (cX / frame.shape[1] ,cY /frame.shape[0] )
                 satellite_map_index = index
                 max_matches = len(mkpts1)
+                matches_to_return = matches_valid.copy()
+                confidence_to_return = confidence_valid.copy()
                 MATCHED = True
+                print("Photos were succesfully matched!")
 
         else:
             print("Photos were NOT matched")
@@ -171,14 +177,13 @@ def match_image(input: str, output_dir: str):
 
         if MATCHED == True:
             located_image = out
-        
 
         if not no_display:
             cv2.imshow('SuperGlue matches', out)
             key = chr(cv2.waitKey(1) & 0xFF)
             if key == 'q':
                 vs.cleanup()
-                print('Exiting (via q) demo_superglue.py')
+                print('Exiting (via q) UI')
                 break
             elif key == 'n':  # set the current frame as anchor
                 last_data = {k+'0': pred[k+'1'] for k in keys}
@@ -218,6 +223,4 @@ def match_image(input: str, output_dir: str):
     
     vs.cleanup()
     
-    return satellite_map_index, center, located_image, features_mean, last_frame, max_matches, matches_valid, confidence_valid
-    
-
+    return satellite_map_index, center, located_image, features_mean, last_frame, max_matches, matches_to_return, confidence_to_return

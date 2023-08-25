@@ -144,7 +144,7 @@ def csv_read_sat_map(map_path):
 
 
 def csv_write_image_location(photos, results_path: str):
-    header = ['Filename', 'Latitude', 'Longitude', 'Calculated_Latitude', 'Calculated_Longitude', 'Latitude_Error', 'Longitude_Error', 'Meters_Error', 'Corrected', 'Matched']
+    header = ['Filename', 'Latitude', 'Longitude', 'Calculated_Latitude', 'Calculated_Longitude', 'Latitude_Error', 'Longitude_Error', 'Meters_Error', 'Corrected', 'Matched', 'Angle', 'Matches', 'Confidence']
     with open(os.path.join(results_path, "calculated_coordinates.csv"), 'a', encoding='UTF8') as f:
         writer = csv.writer(f)
         writer.writerow(header)
@@ -219,6 +219,7 @@ def main(base_path: str):
 
     # Iterate through all the drone images
     for drone_image in drone_images_list:
+        print("***********************************")
         print(f"Opening image {drone_image}")
         photo = cv2.imread(drone_image.filename) # read the drone image
         if photo is None or photo.size == 0:
@@ -238,6 +239,7 @@ def main(base_path: str):
         # Iterate through all the rotations, right now it just means to rotate it 4 times in 90 degrees.
         for i in range(0, rotations[0]):
             # Rotate image.
+            print("=================================")
             print(f"Rotation {i + 1}")
             photo = cv2.rotate(photo, cv2.ROTATE_90_CLOCKWISE)
             
@@ -245,7 +247,7 @@ def main(base_path: str):
             cv2.imwrite(os.path.join(map_path, "1_query_image.png"), photo)
 
             #Call superglue wrapper function to match the query image to the map
-            satellite_map_index_new, center_new, located_image_new, features_mean_new, query_image_new, feature_number, matches_new, confidence_new = superglue_utils.match_image(map_path, results_path)
+            satellite_map_index_new, center_new, located_image_new, features_mean_new, query_image_new, feature_number, matches_new, confidence_new = superglue_utils.match_image(map_path, results_path)            
             
             # If the drone image was located in the map and the number of features is greater than the previous best match, then update the best match
             # Sometimes the pixel center returned by the perspective transform exceeds 1, discard the resuls in that case
@@ -259,9 +261,10 @@ def main(base_path: str):
                 matches = matches_new
                 confidence = confidence_new
                 located = True
-        photo_name = drone_image.filename.split("/")[-1]
+                print(f"Found better image match, {satellite_map_index}, with {max_features} matches, confidence {confidence}.")
 
         # If the drone image was located in the map, calculate the geographical location of the drone image
+        photo_name = drone_image.filename.split("/")[-1]
         if center != None and located:        
             current_location = calculate_geo_pose(geo_images_list[satellite_map_index], center, features_mean, query_image.shape )
             
@@ -281,7 +284,7 @@ def main(base_path: str):
             drone_image.latitude_calculated = current_location[0]
             drone_image.longitude_calculated = current_location[1]
             drone_image.matches = matches
-            drone_image.confidence = confidence
+            drone_image.confidence = confidence            
             
             latitude_calculated.append(drone_image.latitude_calculated)
             longitude_calculated.append(drone_image.longitude_calculated)
