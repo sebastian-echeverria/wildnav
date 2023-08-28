@@ -119,8 +119,8 @@ def match_image(input: str, output_dir: str):
         mkpts1 = kpts1[matches_valid]
         confidence_valid = confidence[valid]
 
-        print(f"Matches: {matches_valid}")
-        print(f"Confidence: {confidence_valid}")
+        #print(f"Matches: {matches_valid}")
+        #print(f"Confidence: {confidence_valid}")
 
         """
         Find image in satellite map with findHomography        

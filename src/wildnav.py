@@ -276,8 +276,8 @@ def main(base_path: str):
             print("Image " + str(photo_name) + " was successfully located in the map")
             print("Calculated location: ", str(current_location[0:2]))
             print("Ground Truth: ", drone_image.latitude, drone_image.longitude)
-            print(f"Matches: {matches}")
-            print(f"Confidence: {confidence}")
+            #print(f"Matches: {matches}")
+            #print(f"Confidence: {confidence}")
             
             # Save the calculated location for later comparison with the ground truth
             drone_image.matched = True
