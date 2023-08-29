@@ -9,6 +9,7 @@ import csv
 import cv2
 import haversine as hs
 from haversine import Unit
+import numpy as np
 
 import superglue_utils
 
@@ -56,6 +57,8 @@ class GeoPhotoDrone:
 
         self.matches = []
         self.confidence = []
+        self.matches_invalid = []
+        self.confidence_invalid = []        
 
     def __str__(self):
         return "%s; \nlatitude: %f \nlongitude: %f \naltitude: %f \ngimball_roll: %f \ngimball_yaw: %f \ngimball_pitch: %f \nflight_roll: %f \nflight_yaw: %f \nflight_pitch: %f" % (self.filename, self.latitude, self.longitude, self.altitude, self.gimball_roll, self.gimball_yaw, self.gimball_pitch, self.flight_roll, self.flight_yaw, self.flight_pitch )
@@ -79,7 +82,7 @@ class GeoPhoto:
 ############################################################################################################
 # Functions for data writing and reading csv files
 ############################################################################################################
-def csv_read_drone_images(photo_path):
+def csv_read_drone_images(photo_path: str) -> list[GeoPhotoDrone]:
     """Builds a list with drone geo tagged photos by reading a csv file with this format:
     Filename, Top_left_lat,Top_left_lon,Bottom_right_lat,Bottom_right_long
     "photo_name.png",60.506787,22.311631,60.501037,22.324467
@@ -144,11 +147,12 @@ def csv_read_sat_map(map_path):
 
 
 def csv_write_image_location(photos, results_path: str):
-    header = ['Filename', 'Latitude', 'Longitude', 'Calculated_Latitude', 'Calculated_Longitude', 'Latitude_Error', 'Longitude_Error', 'Meters_Error', 'Corrected', 'Matched', 'Angle', 'Matches', 'Confidence']
+    header = ['Filename', 'Latitude', 'Longitude', 'Calculated_Latitude', 'Calculated_Longitude', 'Latitude_Error', 'Longitude_Error', 'Meters_Error', 'Corrected', 'Matched', 'Angle', 'Matches', 'Confidence', 'Matches Invalid', 'Confidence Invalid']
     with open(os.path.join(results_path, "calculated_coordinates.csv"), 'a', encoding='UTF8') as f:
         writer = csv.writer(f)
         writer.writerow(header)
 
+        np.set_printoptions(threshold=np.inf)
         for photo in photos:
             photo_name = photo.filename.split("/")[-1]
             loc1 = ( photo.latitude, photo.longitude)
@@ -158,9 +162,11 @@ def csv_write_image_location(photos, results_path: str):
             lon_error = photo.longitude - photo.longitude_calculated
             matches = f"{photo.matches}"
             confidence = f"{photo.confidence}"
+            matches_invalid = f"{photo.matches_invalid}"
+            confidence_invalid = f"{photo.confidence_invalid}"            
             line = [photo_name, str(photo.latitude), str(photo.longitude), str(photo.latitude_calculated), str(photo.longitude_calculated), \
                     str(lat_error), str(lon_error), str(dist_error), str(photo.corrected), str(photo.matched), str(photo.gimball_yaw + photo.flight_yaw - 15), \
-                    matches, confidence]
+                    matches, confidence, matches_invalid, confidence_invalid]
             writer.writerow(line)
 
 
@@ -231,6 +237,8 @@ def main(base_path: str):
         center = None # center of the drone image in the map
         matches = [] # matches found
         confidence = [] # confidence for each match
+        matches_invalid = []
+        confidence_invalid = []
 
         rotations = [4] # list of rotations to try
                         # keep in mind GNSS metadata could have wrong rotation angle
@@ -247,7 +255,7 @@ def main(base_path: str):
             cv2.imwrite(os.path.join(map_path, "1_query_image.png"), photo)
 
             #Call superglue wrapper function to match the query image to the map
-            satellite_map_index_new, center_new, located_image_new, features_mean_new, query_image_new, feature_number, matches_new, confidence_new = superglue_utils.match_image(map_path, results_path)            
+            satellite_map_index_new, center_new, located_image_new, features_mean_new, query_image_new, feature_number, matches_new, confidence_new, matches_invalid_new, confidence_invalid_new = superglue_utils.match_image(map_path, results_path)            
             
             # If the drone image was located in the map and the number of features is greater than the previous best match, then update the best match
             # Sometimes the pixel center returned by the perspective transform exceeds 1, discard the resuls in that case
@@ -260,6 +268,8 @@ def main(base_path: str):
                 max_features = feature_number
                 matches = matches_new
                 confidence = confidence_new
+                matches_invalid = matches_invalid_new
+                confidence_invalid = confidence_invalid_new
                 located = True
                 print(f"Found better image match, {satellite_map_index}, with {max_features} matches, confidence {confidence}.")
 
@@ -284,7 +294,9 @@ def main(base_path: str):
             drone_image.latitude_calculated = current_location[0]
             drone_image.longitude_calculated = current_location[1]
             drone_image.matches = matches
-            drone_image.confidence = confidence            
+            drone_image.confidence = confidence
+            drone_image.matches_invalid = matches_invalid
+            drone_image.confidence_invalid = confidence_invalid
             
             latitude_calculated.append(drone_image.latitude_calculated)
             longitude_calculated.append(drone_image.longitude_calculated)

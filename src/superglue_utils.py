@@ -94,6 +94,8 @@ def match_image(input: str, output_dir: str):
 
     matches_to_return = []
     confidence_to_return = []
+    matches_inv_to_return = []
+    confidence_inv_to_return = []
 
     while True:
         
@@ -118,6 +120,10 @@ def match_image(input: str, output_dir: str):
         mkpts0 = kpts0[valid]
         mkpts1 = kpts1[matches_valid]
         confidence_valid = confidence[valid]
+
+        invalid = np.invert(valid)
+        matches_invalid = matches[invalid]
+        confidence_invalid = confidence[invalid]
 
         #print(f"Matches: {matches_valid}")
         #print(f"Confidence: {confidence_valid}")
@@ -156,6 +162,8 @@ def match_image(input: str, output_dir: str):
                 max_matches = len(mkpts1)
                 matches_to_return = matches_valid.copy()
                 confidence_to_return = confidence_valid.copy()
+                matches_inv_to_return = matches_invalid.copy()
+                confidence_inv_to_return = confidence_invalid.copy()
                 MATCHED = True
                 print("Photos were succesfully matched!")
 
@@ -223,4 +231,4 @@ def match_image(input: str, output_dir: str):
     
     vs.cleanup()
     
-    return satellite_map_index, center, located_image, features_mean, last_frame, max_matches, matches_to_return, confidence_to_return
+    return satellite_map_index, center, located_image, features_mean, last_frame, max_matches, matches_to_return, confidence_to_return, matches_inv_to_return, confidence_inv_to_return
