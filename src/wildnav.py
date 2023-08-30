@@ -198,13 +198,13 @@ def calculate_geo_pose(geo_photo, center, features_mean,  shape):
 # MAIN
 #######################################
 
-def main(base_path: str):
+def main(base_path: str, map_folder: str, photos_folder: str, results_folder: str):
     print(f"Running in {os. getcwd()}")
     print(f"Using base path: {base_path}")
 
-    map_path = os.path.join(base_path, DEFAULT_MAP_FOLDER)
-    drone_photos_path = os.path.join(base_path, DEFAULT_PHOTOS_FOLDER)
-    results_path = os.path.join(base_path, DEFAULT_RESULTS_FOLDER)
+    map_path = os.path.join(base_path, map_folder)
+    drone_photos_path = os.path.join(base_path, photos_folder)
+    results_path = os.path.join(base_path, results_folder)
 
     #Read all the geo tagged images that make up the sattelite map used for reference
     geo_images_list = csv_read_sat_map(map_path)
@@ -313,11 +313,14 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--path")
+    parser.add_argument("--map")
+    parser.add_argument("--photos")
+    parser.add_argument("--results")
     args = parser.parse_args()
 
-    base_path = DEFAULT_BASE_PATH
-
-    if args.path is not None:
-        base_path = args.path
+    base_path = args.path if args.path is not None else DEFAULT_BASE_PATH
+    map_folder = args.map if args.map is not None else DEFAULT_MAP_FOLDER
+    photos_folder = args.photos if args.photos is not None else DEFAULT_PHOTOS_FOLDER
+    results_folder = args.results if args.results is not None else DEFAULT_RESULTS_FOLDER
 
     main(base_path)
