@@ -323,4 +323,4 @@ if __name__ == "__main__":
     photos_folder = args.photos if args.photos is not None else DEFAULT_PHOTOS_FOLDER
     results_folder = args.results if args.results is not None else DEFAULT_RESULTS_FOLDER
 
-    main(base_path)
+    main(base_path, map_folder, photos_folder, results_folder)
