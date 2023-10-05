@@ -5,6 +5,7 @@ from pathlib import Path
 import os
 import glob
 import csv
+import json
 
 import cv2
 import haversine as hs
@@ -161,9 +162,9 @@ def csv_write_image_location(photos, results_path: str):
             lat_error = photo.latitude - photo.latitude_calculated
             lon_error = photo.longitude - photo.longitude_calculated
             matches = f"{photo.matches}"
-            confidence = f"{photo.confidence}"
+            confidence = f"{json.dumps(photo.confidence.tolist())}"
             matches_invalid = f"{photo.matches_invalid}"
-            confidence_invalid = f"{photo.confidence_invalid}"            
+            confidence_invalid = f"{json.dumps(photo.confidence_invalid.tolist())}"            
             line = [photo_name, str(photo.latitude), str(photo.longitude), str(photo.latitude_calculated), str(photo.longitude_calculated), \
                     str(lat_error), str(lon_error), str(dist_error), str(photo.corrected), str(photo.matched), str(photo.gimball_yaw + photo.flight_yaw - 15), \
                     matches, confidence, matches_invalid, confidence_invalid]
