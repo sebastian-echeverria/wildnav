@@ -164,9 +164,9 @@ def csv_write_image_location(photos, results_path: str):
             lat_error = photo.latitude - photo.latitude_calculated
             lon_error = photo.longitude - photo.longitude_calculated
             matches = f"{photo.matches}"
-            confidence = f"{json.dumps(photo.confidence.tolist())}"
+            confidence = f"{json.dumps(photo.confidence)}"
             matches_invalid = f"{photo.matches_invalid}"
-            confidence_invalid = f"{json.dumps(photo.confidence_invalid.tolist())}"            
+            confidence_invalid = f"{json.dumps(photo.confidence_invalid)}"            
             line = [photo_name, str(photo.latitude), str(photo.longitude), str(photo.latitude_calculated), str(photo.longitude_calculated), \
                     str(lat_error), str(lon_error), str(dist_error), str(photo.corrected), str(photo.matched), str(photo.gimball_yaw + photo.flight_yaw - 15), \
                     matches, confidence, matches_invalid, confidence_invalid]
@@ -270,9 +270,9 @@ def main(base_path: str, map_folder: str, photos_folder: str, results_folder: st
                 query_image = query_image_new
                 max_features = feature_number
                 matches = matches_new
-                confidence = confidence_new
+                confidence = confidence_new.tolist()
                 matches_invalid = matches_invalid_new
-                confidence_invalid = confidence_invalid_new
+                confidence_invalid = confidence_invalid_new.tolist()
                 located = True
                 print(f"Found better image match, {satellite_map_index}, with {max_features} matches, confidence {confidence}.")
 
