@@ -11,6 +11,7 @@ import cv2
 import haversine as hs
 from haversine import Unit
 import numpy as np
+from natsort import natsorted
 
 import superglue_utils
 
@@ -113,7 +114,8 @@ def csv_read_drone_images(photo_path: str) -> list[GeoPhotoDrone]:
     else:
         # If there isn't, just load all image files in the folder and set all data to 0.
         print(f"Getting all images at {photo_path}")
-        for full_image_path in glob.glob(f"{photo_path}/*.*"):
+        file_paths = [os.path.join(photo_path, file) for file in natsorted(os.listdir(photo_path))]
+        for full_image_path in file_paths:
             geo_photo = GeoPhotoDrone(full_image_path, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
             geo_list_drone.append(geo_photo)
 
