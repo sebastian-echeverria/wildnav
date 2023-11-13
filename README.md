@@ -162,3 +162,14 @@ located at 60.403091° latitude and 22.461824° longitude </p>
 
 ## Contact
 Feel free to send me an email at mmgurg@utu.fi if you have any questions about the project.
+
+## Docker Version and Additional Tools
+
+To prepare a container image to run Wildnav and tools in a container:
+1. Build the docker image with `bash build.sh`
+
+To run Wildnav in a container:
+1. Execute `bash run_container.sh wildnav.py`
+
+Map splitter takes a GeoTIF map image and converts it to multiple png quadrants and a csv file with the coordinates for each qudrant. To run the map splitter tool in a container:
+1. Execute `bash run_container.sh map_splitter.py [map_image_path]`, and add additional parameters if needed.
