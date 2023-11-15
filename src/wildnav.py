@@ -105,6 +105,7 @@ def csv_read_drone_images(photo_path: str) -> list[GeoPhotoDrone]:
                     line_count += 1
                 else:                
                     #img = cv2.imread(photo_path + row[0],0)
+                    print(f"Row: {row}")
                     full_image_path = os.path.join(photo_path, row[0])
                     geo_photo = GeoPhotoDrone(full_image_path, 0, float(row[1]), float(row[2]), float(row[3]), float(row[4]), float(row[5]), float(row[6]), float(row[7]), float(row[8]), float(row[9]))
                     geo_list_drone.append(geo_photo)
