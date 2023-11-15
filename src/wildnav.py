@@ -232,7 +232,7 @@ def main(base_path: str, map_folder: str, photos_folder: str, results_folder: st
         print(f"Opening image {drone_image}")
         photo = cv2.imread(drone_image.filename) # read the drone image
         if photo is None or photo.size == 0:
-            print(f"Image {drone_image} could not be opened; ignoring.")
+            print(f"Image {drone_image.filename} could not be opened; ignoring.")
             continue
 
         max_features = 0 # keep track of the best match, more features = better match
