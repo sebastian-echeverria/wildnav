@@ -2,7 +2,7 @@
 import csv
 
 
-def write_drone_csv_coordinates(coordinates: dict[str], output_path: str):
+def write_drone_csv_coordinates(coordinates: list[dict[str]], output_path: str):
     """Writes a CSV file with coordinates for each image."""
     header = ['Filename', 'Latitude', 'Longitude', 'Altitude', 'Gimball_Roll', 'Gimball_Yaw', 'Gimball_Pitch', 'Flight_Roll', 'Flight_Yaw', 'Flight_Pitch']
 
@@ -26,7 +26,7 @@ def write_drone_csv_coordinates(coordinates: dict[str], output_path: str):
     write_csv(output_path, lines, header)
 
 
-def write_map_csv_coordinates(coordinates: dict[str], output_path: str):
+def write_map_csv_coordinates(coordinates: list[dict[str]], output_path: str):
     """Writes a CSV file with coordinates for a map image."""
     header = ['Filename', 'Top_left_lat', 'Top_left_lon', 'Bottom_right_lat', 'Bottom_right_long']
     lines = []

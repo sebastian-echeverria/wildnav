@@ -17,7 +17,7 @@ if __name__ == "__main__":
     parser.add_argument("--long", type=float, help="Longitude in degrees", required=True)
     parser.add_argument("-f", type=str, default="./tiles", help="Output folder")
     parser.add_argument("-r", type=int, default=0, help="How many additional tiles to get in a radius around the center one. 1 means all tiles 1 tile away (i.e., 8), 2, 2 tiles away, etc")
-    parser.add_argument("-m", type=int, help="If present, merge all images, and how many images to merge them into.")
+    parser.add_argument("-m", action=argparse.BooleanOptionalAction, help="If present, merge all images.")
     arguments, _ = parser.parse_known_args()
 
     # Get all tiles.
@@ -25,8 +25,8 @@ if __name__ == "__main__":
 
     if arguments.m is not None:
         # Merge tiles, and generate CSV for map.
-        map_data = tile_downloader.merge_tiles(image_matrix, arguments.z, arguments.lat, arguments.long, output_folder=arguments.f, radius=arguments.r, num_final_images=arguments.m)
+        map_data = tile_downloader.merge_tiles(image_matrix, arguments.z, arguments.lat, arguments.long, output_folder=arguments.f, radius=arguments.r)
         csv_generator.write_map_csv_coordinates(map_data, os.path.join(arguments.f, MAP_CSV_FILE))
     else:
-        # Generate CSV and JSON for separate tiles.
+        # Generate CSV  for separate tiles.
         csv_generator.write_drone_csv_coordinates(image_data, os.path.join(arguments.f, DRONE_CSV_FILE))

@@ -75,18 +75,19 @@ def get_tiles(zoom_level: int, lat: float, long: float, base_url: str = TILE_SOU
     return all_images, image_data
 
 
-def merge_tiles(all_images: list[list[str]], zoom_level: int, lat: float, long: float, output_folder: str = "./", radius: int = 0, remove: bool = True, num_final_images: int = 1) -> list[dict]:
+def merge_tiles(all_images: list[list[str]], zoom_level: int, lat: float, long: float, 
+                output_folder: str = "./", radius: int = 0, remove: bool = True) -> list[dict]:
     """Saves into a file the tile for the given zoom, lat and log, using the provided tile source and output folder."""    
     # Combine images.
     if len(all_images) > 1:
         center_tile_x, center_tile_y = TileSystem.lat_long_to_tile_xy(lat, long, zoom_level)
-        image_data: list[dict] = []
         combined_image_name = f"tile_z_{zoom_level}_tile_{center_tile_x}_{center_tile_y}_r_{radius}.{IMAGE_TYPES['image/png']}"
         combined_image_path = os.path.join(output_folder, combined_image_name)
         print(f"Combining images into output file: {combined_image_path}")
-        tile_combination.combine_tiles(all_images, combined_image_path, num_final_images)
+        tile_combination.combine_tiles(all_images, combined_image_path)
 
         # Calculate coordinates of center of this tile.
+        image_data: list[dict] = []
         top_left_lat, top_left_long = TileSystem.tile_xy_to_lat_long_top_left(center_tile_x, center_tile_y, zoom_level)
         print(f"TLA, TLO: {top_left_lat}, {top_left_long}")
         bottom_right_lat, bottom_right_long = TileSystem.tile_xy_to_lat_long_bottom_right(center_tile_x, center_tile_y, zoom_level)
