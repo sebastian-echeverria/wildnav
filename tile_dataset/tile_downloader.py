@@ -2,6 +2,7 @@
 import os
 from pathlib import Path
 from typing import Tuple
+import shutil
 
 import requests
 
@@ -19,19 +20,29 @@ TILE_SOURCES = {
 IMAGE_TYPES = {"image/jpeg": "jpg", "image/png": "png"}
 
 
-def create_folder_for_file(filepath: str):
-    """Creates the folder tree for a given file path, if needed."""
-    folder = Path(filepath).parent
-    if not folder.exists():
-        folder.mkdir(parents=True)
+def delete_folder(folder_path: str):
+    """Removes the given folder."""
+    if Path(folder_path).exists():
+        shutil.rmtree(folder_path)
+
+
+def create_folder(folder_path: str):
+    """Creates the given folder."""
+    Path(folder_path).mkdir(parents=True, exist_ok=True)
 
 
 def get_tiles(zoom_level: int, lat: float, long: float, base_url: str = TILE_SOURCES["ARCGIS"]["url"], 
-              output_folder: str = "./", radius: int = 0, merge: bool = True) -> Tuple[list[list[str]], list[dict]]:
+              output_folder: str = "./", radius: int = 0, merge: bool = True, delete : bool = True) -> Tuple[list[list[str]], list[dict]]:
     """Saves into a file the tile for the given zoom, lat and log, using the provided tile source and output folder."""
     # First obtain tile coordinates.
     center_tile_x, center_tile_y = TileSystem.lat_long_to_tile_xy(lat, long, zoom_level)
     print(f"Tile: ({center_tile_x}, {center_tile_y})")
+
+    # Delete and create folder as needed.
+    if delete:
+        print(f"Deleting old folder data from {output_folder}")
+        delete_folder(output_folder)
+    create_folder(output_folder)
 
     # Iterate over all tiles we need.
     image_data: list[dict] = []
@@ -56,7 +67,6 @@ def get_tiles(zoom_level: int, lat: float, long: float, base_url: str = TILE_SOU
                 # Prepare file name and folder to save image to.
                 file_name = f"tile_z_{zoom_level}_tile_{tile_x}_{tile_y}.{IMAGE_TYPES[image_type]}"
                 file_path = os.path.join(output_folder, file_name)
-                create_folder_for_file(file_path)
                 
                 print(f"Writing output file to: {file_path}")
                 with open(file_path, 'wb') as f:
