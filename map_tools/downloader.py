@@ -8,7 +8,7 @@ import mapper.tiles.tile_downloader as tile_downloader
 DEFAULT_PHOTO_ZOOM = 19
 DRONE_CSV_FILE = "photo_metadata.csv"
 DRONE_JSON_FILE = "dataset.json"
-DEFAULT_OUTPUT_FOLDER = "./temp_tiles"
+DEFAULT_OUTPUT_FOLDER = "./temp_io"
 
 
 if __name__ == "__main__":
