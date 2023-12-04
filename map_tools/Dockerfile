@@ -14,6 +14,6 @@ RUN pip --default-timeout=1000 install -r requirements.txt
 RUN pip --default-timeout=1000 install gdal=="`gdal-config --version`.*"
 
 # Code.
-COPY * /app/
+COPY ./ /app/
 
-ENTRYPOINT ["python3", "-m"]
+ENTRYPOINT ["python", "-m"]
