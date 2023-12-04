@@ -1,9 +1,9 @@
 import argparse
 import os
 
-from map_tools.map import map
-import map_tools.io.csv_generator as csv_generator
-import map_tools.tiles.tile_downloader as tile_downloader
+from mapper.map import map
+import mapper.io.csv_generator as csv_generator
+import mapper.tiles.tile_downloader as tile_downloader
 
 DEFAULT_PHOTO_ZOOM = 19
 DRONE_CSV_FILE = "photo_metadata.csv"

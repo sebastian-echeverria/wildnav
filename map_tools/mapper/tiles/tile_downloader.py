@@ -4,10 +4,10 @@ from typing import Tuple
 
 import requests
 
-import gps.exif_gps as exif_gps
-from tiles.tile_system import TileSystem
-import tiles.tile_combination as tile_combination
-from ..io import file_utils
+import mapper.gps.exif_gps as exif_gps
+from mapper.tiles.tile_system import TileSystem
+import mapper.tiles.tile_combination as tile_combination
+from mapper.io import file_utils
 
 
 TILE_SOURCES = {
