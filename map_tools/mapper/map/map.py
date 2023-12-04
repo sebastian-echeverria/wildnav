@@ -1,5 +1,6 @@
 import os
 import os.path
+from pathlib import Path
 
 import cv2
 
@@ -11,15 +12,15 @@ DEFAULT_OUTPUT_FORMAT = "png"
 MAP_DATA_FILE = "map.csv"
 
 
-def create_subpictures(image_name: str, line_size:int) -> list[str]:
+def create_subpictures(image_path: str, line_size:int) -> list[str]:
     """Creates subpictures for a diven image."""
     out_images = []
     print(f"Creating subimages of max size {line_size}x{line_size}")
 
     # Open image and get dimensions.
-    img = cv2.imread(image_name, cv2.IMREAD_UNCHANGED)
+    img = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
     if img is None:
-        raise Exception(f"Image {image_name} was not found.")
+        raise Exception(f"Image {image_path} was not found.")
     ysize = img.shape[0]
     xsize = img.shape[1]
     print(f"Original map file is {xsize} x {ysize}")
@@ -53,12 +54,12 @@ def create_subpictures(image_name: str, line_size:int) -> list[str]:
                 curr_y_size = ysize - y_offset
 
             # Give a name to the new subimage.
-            image_name_without_ext, ext = os.path.splitext(image_name)
-            output_image_name = f"{image_name_without_ext}_{i}_{j}{ext}"
+            image_path_without_ext, ext = os.path.splitext(image_path)
+            output_image_path = f"{image_path_without_ext}_{i}_{j}{ext}"
 
             # Create each sub image.
-            gdal_tool.gdal_create_subpic(x_offset, y_offset, curr_x_size, curr_y_size, image_name, output_image_name)
-            out_images.append(output_image_name)
+            gdal_tool.gdal_create_subpic(x_offset, y_offset, curr_x_size, curr_y_size, image_path, output_image_path)
+            out_images.append(output_image_path)
 
     return out_images
 
@@ -71,24 +72,38 @@ def create_map_data_file(output_folder: str, parts_gps_info: list[dict]):
         csv_generator.write_map_csv_coordinates(parts_gps_info, map_csv_filename)
 
 
-def split_map(image_path: str, size: int = None, out_format: str = None) -> list[str]:
+def split_map(image_path: str, size: int = None) -> list[str]:
     """
     Splits a map into subimages of the given format.
     :return: A list with the paths of the subimages.
     """
     if size is None:
         size = DEFAULT_SUB_SIZE
-    if out_format is None:
-        out_format = DEFAULT_OUTPUT_FORMAT
 
     print(f"Starting image splitting for {image_path} to size {size}")
     out_images = create_subpictures(image_path, size)
-
-    print(f"Converting image parts to {out_format}, if needed")
-    for image in out_images:
-        converted = gdal_tool.gdal_convert_to_format(image, out_format)
-        if converted:
-            print(f"Removing intermediate image {image}")
-            os.remove(image)
-
     return out_images
+
+
+def convert_images(image_paths: list[str], images_info: list[dict], out_format: str = None) -> list[str]:
+    """
+    Converts a list of images to the given format.
+    :returns: update image info.
+    """
+    if out_format is None:
+        out_format = DEFAULT_OUTPUT_FORMAT
+
+    print(f"Converting image parts to {image_paths}, if needed")
+    for image_path in image_paths:
+        converted_image_path = gdal_tool.gdal_convert_to_format(image_path, out_format)
+        if converted_image_path != "":
+            print(f"Removing intermediate image {image_path}")
+            os.remove(image_path)
+
+            # Update image info with converted image name.
+            for image_info in images_info:
+                if image_info["filename"] == Path(image_path).name:
+                    image_info["filename"] = Path(converted_image_path).name
+                    break
+
+    return images_info

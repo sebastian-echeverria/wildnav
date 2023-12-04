@@ -1,4 +1,5 @@
 from typing import Tuple
+from pathlib import Path
 
 from osgeo import osr
 from osgeo import gdal
@@ -9,19 +10,21 @@ def get_geotiff_gps_info(geotiff_images: list[str]) -> list[dict]:
     Gest coordinate info from the provided GeoTIFF images.
     :return: A dictionary with entries for the coordinates of the top left and bottom right corners.
     """
-    info = {}
+    images_info = []
     try:
         # Now info for each image.
         for image_path in geotiff_images:
             # For each image, get the name and change ext to the final output.
-            info["filename"] = image_path
+            info = {}
+            info["filename"] = Path(image_path).name
             geotiff_image = GeoTIFFImage(image_path)
             info["top_left_long"], info["top_left_lat"], _ = geotiff_image.top_left_coords()
             info["bottom_right_long"], info["bottom_right_lat"], _ = geotiff_image.bottom_right_coords()
+            images_info.append(info)
     except RuntimeError as ex:
         print(f"Could not generate metadata from images, they may not be GeoTIFF files: {ex}")
     
-    return info
+    return images_info
 
 
 class GeoTIFFImage():

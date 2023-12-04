@@ -9,21 +9,21 @@ def gdal_create_subpic(x: int, y: int, xsize: int, ysize:int, inname: str, outna
     print(result)
 
 
-def gdal_convert_to_format(image_name: str, output_format: str = "png") -> bool:
+def gdal_convert_to_format(image_path: str, output_format: str = "png") -> str:
     """
     Converts the image to the given format.
-    :return: boolean that indicates whether image was converted or not.
+    :return: the path of the converted image, or empty string if not converted.
     """
-    image_name_without_ext, ext = os.path.splitext(image_name)
+    image_name_without_ext, ext = os.path.splitext(image_path)
     if ext == output_format:
-        print(f"Not converting: image {image_name} already has extension {output_format}")
-        return False
+        print(f"Not converting: image {image_path} already has extension {output_format}")
+        return ""
 
-    outname = f"{image_name_without_ext}.{output_format}"
-    print(f"Executing GDAL translate to convert to {output_format}: {image_name}, {outname}")
+    converted_image_path = f"{image_name_without_ext}.{output_format}"
+    print(f"Executing GDAL translate to convert to {output_format}: {image_path}, {converted_image_path}")
 
     # GDAL_PAM_ENABLED = NO avoids creating intermediary xml files.
-    result = subprocess.run(["gdal_translate", "-of", output_format.upper(), image_name, outname, "--config", "GDAL_PAM_ENABLED", "NO"])
+    result = subprocess.run(["gdal_translate", "-of", output_format.upper(), image_path, converted_image_path, "--config", "GDAL_PAM_ENABLED", "NO"])
     print(result)
 
-    return True
+    return converted_image_path

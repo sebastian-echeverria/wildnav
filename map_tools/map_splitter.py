@@ -17,9 +17,14 @@ def main():
     size = int(args.size) if args.size else None
     out_format = args.of
 
-    out_images = map.split_map(image_path, size, out_format)
-    info = geotiff.get_geotiff_gps_info(out_images)
-    map.create_map_data_file(os.path.dirname(image_path), info)
+    # Split the map into sub images, and extract GPS data for each new piece.
+    sub_images_paths = map.split_map(image_path, size)
+    sub_images_info = geotiff.get_geotiff_gps_info(sub_images_paths)
+    print(sub_images_info)
+
+    # Convert the sub images if needed, and create CSV file with GPS info.
+    updated_sub_images_info = map.convert_images(sub_images_paths, sub_images_info, out_format)
+    map.create_map_data_file(os.path.dirname(image_path), updated_sub_images_info)
 
 
 if __name__ == "__main__":
