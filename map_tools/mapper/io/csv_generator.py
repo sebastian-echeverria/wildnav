@@ -33,11 +33,11 @@ def write_map_csv_coordinates(coordinates: list[dict[str]], output_path: str):
     for info in coordinates:
         filename = info["filename"]
         top_left_lat = info["top_left_lat"]
-        top_left_lon = info["top_left_lon"]
+        top_left_long = info["top_left_long"]
         bottom_right_lat = info["bottom_right_lat"]
         bottom_right_long = info["bottom_right_long"]
 
-        line = [filename, top_left_lat,  top_left_lon, bottom_right_lat, bottom_right_long]
+        line = [filename, top_left_lat,  top_left_long, bottom_right_lat, bottom_right_long]
         lines.append(line)
     
     write_csv(output_path, lines, header)

@@ -1,14 +1,13 @@
 
 import os
-from pathlib import Path
 from typing import Tuple
-import shutil
 
 import requests
 
-import exif_gps
-from tile_system import TileSystem
-import tile_combination
+import gps.exif_gps as exif_gps
+from tiles.tile_system import TileSystem
+import tiles.tile_combination as tile_combination
+from ..io import file_utils
 
 
 TILE_SOURCES = {
@@ -18,17 +17,6 @@ TILE_SOURCES = {
 }
 
 IMAGE_TYPES = {"image/jpeg": "jpg", "image/png": "png"}
-
-
-def delete_folder(folder_path: str):
-    """Removes the given folder."""
-    if Path(folder_path).exists():
-        shutil.rmtree(folder_path)
-
-
-def create_folder(folder_path: str):
-    """Creates the given folder."""
-    Path(folder_path).mkdir(parents=True, exist_ok=True)
 
 
 def get_tiles(zoom_level: int, lat: float, long: float, base_url: str = TILE_SOURCES["ARCGIS"]["url"], 
@@ -41,8 +29,8 @@ def get_tiles(zoom_level: int, lat: float, long: float, base_url: str = TILE_SOU
     # Delete and create folder as needed.
     if delete:
         print(f"Deleting old folder data from {output_folder}")
-        delete_folder(output_folder)
-    create_folder(output_folder)
+        file_utils.delete_folder(output_folder)
+    file_utils.create_folder(output_folder)
 
     # Iterate over all tiles we need.
     image_data: list[dict] = []
@@ -102,7 +90,7 @@ def merge_tiles(all_images: list[list[str]], zoom_level: int, lat: float, long: 
         print(f"TLA, TLO: {top_left_lat}, {top_left_long}")
         bottom_right_lat, bottom_right_long = TileSystem.tile_xy_to_lat_long_bottom_right(center_tile_x, center_tile_y, zoom_level)
         print(f"BRLA, BRLO: {bottom_right_lat}, {bottom_right_long}")
-        image_data.append({"filename": combined_image_name, "top_left_lat": top_left_lat, "top_left_lon": top_left_long, "bottom_right_lat": bottom_right_lat, "bottom_right_long": bottom_right_long})        
+        image_data.append({"filename": combined_image_name, "top_left_lat": top_left_lat, "top_left_long": top_left_long, "bottom_right_lat": bottom_right_lat, "bottom_right_long": bottom_right_long})        
 
         # Add coordinates as exif data.
         center_lat, center_long = TileSystem.tile_xy_to_lat_long_center(center_tile_x, center_tile_y, zoom_level)
