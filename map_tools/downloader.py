@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
     if arguments.m is not None:
         # Merge tiles, and generate CSV for map.
-        map_data = tile_handler.create_maps(image_matrix, arguments.z, arguments.lat, arguments.long, output_folder=output_folder, radius=arguments.r, max_size=arguments.s)
+        map_data = tile_handler.create_maps(image_matrix, image_data, arguments.z, arguments.lat, arguments.long, output_folder=output_folder, radius=arguments.r, max_size=arguments.s)
         map.create_map_data_file(output_folder, map_data)
     else:
         # Generate CSV  for separate tiles.

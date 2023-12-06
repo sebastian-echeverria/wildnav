@@ -65,7 +65,7 @@ def download_tiles(zoom_level: int, lat: float, long: float, base_url: str = TIL
 
                 # Calculate coordinates of center of this tile.
                 center_lat, center_long = TileSystem.tile_xy_to_lat_long_center(tile_x, tile_y, zoom_level)
-                image_data.append({"filename": file_name, "path": file_path, "lat": center_lat, "lon": center_long})
+                image_data.append({"filename": file_name, "path": file_path, "center_lat": center_lat, "center_long": center_long, "tile_x": tile_x, "tile_y": tile_y})
 
                 # Add coordinates as exif data.
                 exif_gps.add_geolocation(file_path, center_lat, center_long)
@@ -75,14 +75,23 @@ def download_tiles(zoom_level: int, lat: float, long: float, base_url: str = TIL
     return all_images, image_data
 
 
-def _calculate_tile_gps(image_name: str, image_path: str, zoom_level: int, tile_x: int, tile_y: int) -> dict:
-    """Calculate GPS coordinates information for center and corners of the provided tile."""
+def _calculate_map_gps(image_name: str, image_path: str, images_data: list[dict], zoom_level: int, tile_x: int, tile_y: int) -> dict:
+    """Calculate GPS coordinates information for center and corners of the provided map."""
     # Calculate coordinates of center of this tile.
     center_lat, center_long = TileSystem.tile_xy_to_lat_long_center(tile_x, tile_y, zoom_level)
     print(f"CLA, CLO: {center_lat}, {center_long}")
-    top_left_lat, top_left_long = TileSystem.tile_xy_to_lat_long_top_left(tile_x, tile_y, zoom_level)
+
+    if len(images_data) == 0:
+        raise Exception("Error: images data must have at least one tile data.")
+
+    # For the top left, get info about the first tile/image.
+    top_left_tile = images_data[0]
+    top_left_lat, top_left_long = TileSystem.tile_xy_to_lat_long_top_left(top_left_tile["tile_x"], top_left_tile["tile_y"], zoom_level)
     print(f"TLA, TLO: {top_left_lat}, {top_left_long}")
-    bottom_right_lat, bottom_right_long = TileSystem.tile_xy_to_lat_long_bottom_right(tile_x, tile_y, zoom_level)
+
+    # For bottom right, get info about the last time/image.
+    bottom_right_tile = images_data[len(images_data)-1]
+    bottom_right_lat, bottom_right_long = TileSystem.tile_xy_to_lat_long_bottom_right(bottom_right_tile["tile_x"], bottom_right_tile["tile_y"], zoom_level)
     print(f"BRLA, BRLO: {bottom_right_lat}, {bottom_right_long}")
 
     # Put everything together in a dict.
@@ -137,7 +146,7 @@ def _calculate_images_gps(images_info: list[dict], main_image_info: dict, zoom_l
     return all_info
 
 
-def _create_map_from_tiles(all_images: list[list[str]], zoom_level: int, lat: float, long: float, 
+def _create_map_from_tiles(all_images: list[list], images_data: list[dict[str]], zoom_level: int, lat: float, long: float, 
                 output_folder: str = "./", radius: int = 0) -> dict:
     """
     Creates a combined map from a set of images.
@@ -149,8 +158,8 @@ def _create_map_from_tiles(all_images: list[list[str]], zoom_level: int, lat: fl
     print(f"Combining images into output file: {combined_image_path}")
     image_merge.combine_images(all_images, combined_image_path)
 
-    # Calculate coordinates of center of this tile.
-    map_info = _calculate_tile_gps(combined_image_name, combined_image_path, zoom_level, center_tile_x, center_tile_y)
+    # Calculate coordinates of this combined image.
+    map_info = _calculate_map_gps(combined_image_name, combined_image_path, images_data, zoom_level, center_tile_x, center_tile_y)
 
     # Add coordinates as exif data.
     exif_gps.add_geolocation(combined_image_path, map_info["center_lat"], map_info["center_long"])    
@@ -158,7 +167,7 @@ def _create_map_from_tiles(all_images: list[list[str]], zoom_level: int, lat: fl
     return map_info
 
 
-def create_maps(all_images: list[list[str]], zoom_level: int, lat: float, long: float, 
+def create_maps(all_images: list[list[str]], images_data: list[dict], zoom_level: int, lat: float, long: float, 
                 output_folder: str = "./", radius: int = 0, remove_tiles: bool = True, max_size: int = map.DEFAULT_SUB_SIZE) -> list[dict]:
     """
     Saves into a file the tile for the given zoom, lat and log, using the provided tile source and output folder.
@@ -168,7 +177,7 @@ def create_maps(all_images: list[list[str]], zoom_level: int, lat: float, long: 
     if len(all_images) > 1:
         # Create merged map and get its GPS info.
         all_maps_info = []
-        map_info = _create_map_from_tiles(all_images, zoom_level, lat, long, output_folder, radius)
+        map_info = _create_map_from_tiles(all_images, images_data, zoom_level, lat, long, output_folder, radius)
         all_maps_info.append(map_info)
         
         if remove_tiles:

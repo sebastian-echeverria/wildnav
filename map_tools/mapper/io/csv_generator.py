@@ -18,8 +18,8 @@ def write_drone_csv_coordinates(coordinates: list[dict[str]], output_path: str):
     lines = []
     for info in coordinates:
         filename = info["filename"]
-        lat = info["lat"]
-        lon = info["lon"]
+        lat = info["center_lat"]
+        lon = info["center_long"]
         line = [filename, lat,  lon, altitude, gimball_roll, gimball_yaw, gimball_pitch , flight_roll, flight_yaw , flight_pitch]
         lines.append(line)
 
