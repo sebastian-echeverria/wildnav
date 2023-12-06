@@ -18,13 +18,11 @@ def speed_block_2D(chops: list[npt.NDArray]):
     return recon
 
 
-def combine_tiles(image_names: list[list[str]], final_name: str):
+def combine_images(image_names: list[list[str]], final_name: str):
     """Gets a list of image paths from disk, creates a new combined one as a result."""
     images = np.zeros(shape=[len(image_names), len(image_names[0]), TILE_WIDTH, TILE_HEIGHT, TILE_CHANNEL])
     for x, image_row in enumerate(image_names):
         for y, image in enumerate(image_row):
-            print(image_row)
-            print(image)
             images[x][y] = cv2.imread(image)
 
     # Combine and store this image.
