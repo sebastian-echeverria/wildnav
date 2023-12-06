@@ -180,7 +180,7 @@ def create_maps(all_images: list[list[str]], zoom_level: int, lat: float, long: 
         # If width or height of resulting combined map is more than our max size, split.
         combined_image = Image.open(map_info["file_path"])
         width, height = combined_image.size
-        if width > max_size or height > max_size:
+        if max_size != 0  and (width > max_size or height > max_size):
             # Split map by size and calculate GPS data for each part.
             sub_images_data = map.split_map(map_info["file_path"], max_size)            
             all_maps_info = _calculate_images_gps(sub_images_data, map_info, zoom_level)

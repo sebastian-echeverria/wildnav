@@ -20,7 +20,7 @@ if __name__ == "__main__":
     parser.add_argument("-r", type=int, default=0, help="How many additional tiles to get in a radius around the center one. 1 means all tiles 1 tile away (i.e., 8), 2, 2 tiles away, etc")
     parser.add_argument("-m", action=argparse.BooleanOptionalAction, help="If present, merge all images.")
     parser.add_argument("-d", action=argparse.BooleanOptionalAction, help="If present, delete all files in output folder before generating data.")
-    parser.add_argument("-s", type=int, default=DEFAULT_PHOTO_ZOOM, help="Max pixel width size for a map image, split into this size as needed.")
+    parser.add_argument("-s", type=int, default=0, help="Max pixel width size for a map image, split into this size as needed.")
     arguments, _ = parser.parse_known_args()
 
     output_folder = arguments.o
