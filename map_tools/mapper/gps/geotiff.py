@@ -17,6 +17,7 @@ def get_geotiff_gps_info(geotiff_images: list[str]) -> list[dict]:
             # For each image, get the name and change ext to the final output.
             info = {}
             info["filename"] = Path(image_path).name
+            info["file_path"] = image_path
             geotiff_image = GeoTIFFImage(image_path)
             info["top_left_long"], info["top_left_lat"], _ = geotiff_image.top_left_coords()
             info["bottom_right_long"], info["bottom_right_lat"], _ = geotiff_image.bottom_right_coords()

@@ -1,12 +1,33 @@
 import os.path
+from pathlib import Path
 
 import cv2
 
 from mapper.gdal import gdal_tool
 
 
-def split_image(image_path: str, line_size:int) -> list[str]:
-    """Creates subpictures for a given image, preserving GeoTIFF data if any."""
+def _structure_image_info(x_offset: int, y_offset: int, x_size: int, y_size: int, image_path: str) -> list[dict]:
+    """
+    Calculates the GPS coordinates for the given image.
+    :return: a dict with GPS info for the image.
+    """
+    image_info = {}
+    image_info["filename"] = Path(image_path).name
+    image_info["file_path"] = image_path
+    image_info["x_offset"] = x_offset
+    image_info["y_offset"] = y_offset
+    image_info["x_size"] = x_size
+    image_info["y_size"] = y_size
+
+    return image_info
+
+
+def split_image(image_path: str, line_size:int) -> list[dict]:
+    """
+    Creates subpictures for a given image, preserving GeoTIFF data if any.
+    :param: line_size: the max amount of pixels to have per dimension (both width and height) for each part.
+    :return: a list of dicts with information about the split images.
+    """
     out_images = []
     print(f"Creating subimages of max size {line_size}x{line_size}")
 
@@ -52,6 +73,7 @@ def split_image(image_path: str, line_size:int) -> list[str]:
 
             # Create each sub image.
             gdal_tool.gdal_create_subpic(x_offset, y_offset, curr_x_size, curr_y_size, image_path, output_image_path)
-            out_images.append(output_image_path)
+            image_info = _structure_image_info(x_offset, y_offset, curr_x_size, curr_y_size, output_image_path)
+            out_images.append(image_info)
 
     return out_images

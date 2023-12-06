@@ -18,7 +18,8 @@ def main():
     out_format = args.of
 
     # Split the map into sub images, and extract GPS data for each new piece.
-    sub_images_paths = map.split_map(image_path, size)
+    sub_images_data = map.split_map(image_path, size)
+    sub_images_paths = [image["file_path"] for image in sub_images_data]
     sub_images_info = geotiff.get_geotiff_gps_info(sub_images_paths)
 
     # Convert the sub images if needed, and create CSV file with GPS info.

@@ -3,7 +3,7 @@ import os
 
 from mapper.map import map
 import mapper.io.csv_generator as csv_generator
-import mapper.tiles.tile_downloader as tile_downloader
+import mapper.tiles.tile_handler as tile_handler
 
 DEFAULT_PHOTO_ZOOM = 19
 DRONE_CSV_FILE = "photo_metadata.csv"
@@ -20,6 +20,7 @@ if __name__ == "__main__":
     parser.add_argument("-r", type=int, default=0, help="How many additional tiles to get in a radius around the center one. 1 means all tiles 1 tile away (i.e., 8), 2, 2 tiles away, etc")
     parser.add_argument("-m", action=argparse.BooleanOptionalAction, help="If present, merge all images.")
     parser.add_argument("-d", action=argparse.BooleanOptionalAction, help="If present, delete all files in output folder before generating data.")
+    parser.add_argument("-s", type=int, default=DEFAULT_PHOTO_ZOOM, help="Max pixel width size for a map image, split into this size as needed.")
     arguments, _ = parser.parse_known_args()
 
     output_folder = arguments.o
@@ -27,12 +28,12 @@ if __name__ == "__main__":
         output_folder = DEFAULT_OUTPUT_FOLDER
 
     # Get all tiles.
-    image_matrix, image_data = tile_downloader.get_tiles(arguments.z, arguments.lat, arguments.long, output_folder=output_folder, radius=arguments.r, delete=arguments.d)
+    image_matrix, image_data = tile_handler.download_tiles(arguments.z, arguments.lat, arguments.long, output_folder=output_folder, radius=arguments.r, delete=arguments.d)
 
     if arguments.m is not None:
         # Merge tiles, and generate CSV for map.
-        map_data = tile_downloader.merge_tiles(image_matrix, arguments.z, arguments.lat, arguments.long, output_folder=output_folder, radius=arguments.r)
-        csv_generator.write_map_csv_coordinates(map_data, os.path.join(output_folder, map.MAP_DATA_FILE))
+        map_data = tile_handler.create_maps(image_matrix, arguments.z, arguments.lat, arguments.long, output_folder=output_folder, radius=arguments.r)
+        map.create_map_data_file(output_folder, map_data)
     else:
         # Generate CSV  for separate tiles.
         csv_generator.write_drone_csv_coordinates(image_data, os.path.join(output_folder, DRONE_CSV_FILE))
