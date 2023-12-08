@@ -2,7 +2,7 @@ import argparse
 import os
 
 from mapper.map import map
-import mapper.io.csv_generator as csv_generator
+import mapper.io.wildnav_csv_generator as wildnav_csv_generator
 import mapper.tiles.tile_handler as tile_handler
 
 DEFAULT_PHOTO_ZOOM = 19
@@ -36,4 +36,4 @@ if __name__ == "__main__":
         map.create_map_data_file(output_folder, map_data)
     else:
         # Generate CSV  for separate tiles.
-        csv_generator.write_drone_csv_coordinates(image_data, os.path.join(output_folder, DRONE_CSV_FILE))
+        wildnav_csv_generator.write_drone_csv_coordinates(image_data, os.path.join(output_folder, DRONE_CSV_FILE))

@@ -2,7 +2,7 @@ import os
 import os.path
 from pathlib import Path
 
-from mapper.io import csv_generator
+from mapper.io import wildnav_csv_generator
 from mapper.gdal import gdal_tool
 from mapper.image import image_split
 
@@ -16,7 +16,7 @@ def create_map_data_file(output_folder: str, parts_gps_info: list[dict]):
     if len(parts_gps_info) > 0:
         print(f"Creating CSV with coordinates from each subimage.")
         map_csv_filename = os.path.join(output_folder, MAP_DATA_FILE)
-        csv_generator.write_map_csv_coordinates(parts_gps_info, map_csv_filename)
+        wildnav_csv_generator.write_map_csv_coordinates(parts_gps_info, map_csv_filename)
 
 
 def split_map(image_path: str, size: int = None) -> list[dict]:
