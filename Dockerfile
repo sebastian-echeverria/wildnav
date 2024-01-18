@@ -4,8 +4,7 @@ FROM python:3.10
 RUN pip config set global.trusted-host "pypi.org pypi.python.org files.pythonhosted.org"
 
 # Install required opencv dependencies.
-RUN apt-get update
-RUN apt-get install -y libgl1 libpq-dev gdal-bin libgdal-dev
+RUN apt-get update && apt-get install -y libgl1 libpq-dev gdal-bin libgdal-dev
 
 # Dependencies.
 WORKDIR /app
