@@ -166,6 +166,7 @@ Feel free to send me an email at mmgurg@utu.fi if you have any questions about t
 ## Docker Version and Additional Tools
 
 To prepare a container image to run Wildnav and tools in a container:
+1. Install Superflue submodule: `git submodule update --init --recursive`
 1. Build the docker image with `bash build.sh`
 
 To run Wildnav in a container:
