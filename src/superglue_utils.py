@@ -143,29 +143,34 @@ def match_image(input: str, output_dir: str):
                 dst = cv2.perspectiveTransform(pts,M)
             except:
                 print("Perspective transform error. Abort matching.")
-                perspective_tranform_error = True    
+                perspective_tranform_error = True
 
             if (len(mkpts1) > max_matches) and not perspective_tranform_error: 
                 frame = cv2.polylines(frame,[np.int32(dst)],True,255,3, cv2.LINE_AA) 
                 moments = cv2.moments(dst)
-                cX = int(moments["m10"] / moments["m00"])
-                cY = int(moments["m01"] / moments["m00"])
-                center = (cX  ,cY) #shape[0] is Y coord, shape[1] is X coord
-                #use ratio here instead of pixels because image is reshaped in superglue
-                features_mean = np.mean(mkpts0, axis = 0)
 
-                #Draw the center of the area which has been matched
-                cv2.circle(frame, center, radius = 10, color = (255, 0, 255), thickness = 5)
-                cv2.circle(last_frame, (int(features_mean[0]), int(features_mean[1])), radius = 10, color = (255, 0, 0), thickness = 2)
-                center = (cX / frame.shape[1] ,cY /frame.shape[0] )
-                satellite_map_index = index
-                max_matches = len(mkpts1)
-                matches_to_return = matches_valid.copy()
-                confidence_to_return = confidence_valid.copy()
-                matches_inv_to_return = matches_invalid.copy()
-                confidence_inv_to_return = confidence_invalid.copy()
-                MATCHED = True
-                print("Photos were succesfully matched!")
+                if moments["m00"] == 0:
+                    perspective_tranform_error = True
+                    print("Error calculating moments. Abort matching.")
+                else:
+                    cX = int(moments["m10"] / moments["m00"])
+                    cY = int(moments["m01"] / moments["m00"])
+                    center = (cX  ,cY) #shape[0] is Y coord, shape[1] is X coord
+                    #use ratio here instead of pixels because image is reshaped in superglue
+                    features_mean = np.mean(mkpts0, axis = 0)
+
+                    #Draw the center of the area which has been matched
+                    cv2.circle(frame, center, radius = 10, color = (255, 0, 255), thickness = 5)
+                    cv2.circle(last_frame, (int(features_mean[0]), int(features_mean[1])), radius = 10, color = (255, 0, 0), thickness = 2)
+                    center = (cX / frame.shape[1] ,cY /frame.shape[0] )
+                    satellite_map_index = index
+                    max_matches = len(mkpts1)
+                    matches_to_return = matches_valid.copy()
+                    confidence_to_return = confidence_valid.copy()
+                    matches_inv_to_return = matches_invalid.copy()
+                    confidence_inv_to_return = confidence_invalid.copy()
+                    MATCHED = True
+                    print("Photos were succesfully matched!")
 
         else:
             print("Photos were NOT matched")
