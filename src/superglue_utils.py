@@ -113,7 +113,7 @@ def match_image(input: str, output_dir: str):
         kpts1 = pred['keypoints1'][0].cpu().numpy()
         matches = pred['matches0'][0].cpu().numpy()
         confidence = pred['matching_scores0'][0].cpu().numpy()
-        timer.update('forward')
+        timer.update('forward')        
 
         valid = matches > -1
         matches_valid = matches[valid]

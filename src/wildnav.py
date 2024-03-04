@@ -1,4 +1,6 @@
 """Core module. Contains the main functions for the project."""
+from __future__ import annotations
+
 import argparse
 import os.path
 from pathlib import Path
@@ -244,12 +246,12 @@ def main(base_path: str, map_folder: str, photos_folder: str, results_folder: st
         matches_invalid = []
         confidence_invalid = []
 
-        rotations = [4] # list of rotations to try
+        rotations = 4 # list of rotations to try
                         # keep in mind GNSS metadata could have wrong rotation angle
                         # so we try to match the image with different (manually established) rotations
 
         # Iterate through all the rotations, right now it just means to rotate it 4 times in 90 degrees.
-        for i in range(0, rotations[0]):
+        for i in range(0, rotations):
             # Rotate image.
             print("=================================")
             print(f"Rotation {i + 1}")
