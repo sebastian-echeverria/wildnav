@@ -272,9 +272,9 @@ def main(base_path: str, map_folder: str, photos_folder: str, results_folder: st
                 features_mean = features_mean_new
                 query_image = query_image_new
                 max_features = feature_number
-                matches = matches_new
+                matches = matches_new.tolist()
                 confidence = confidence_new.tolist()
-                matches_invalid = matches_invalid_new
+                matches_invalid = matches_invalid_new.tolist()
                 confidence_invalid = confidence_invalid_new.tolist()
                 located = True
                 print(f"Found better image match, {satellite_map_index}, with {max_features} matches, confidence {confidence}.")
