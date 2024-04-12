@@ -333,6 +333,6 @@ if __name__ == "__main__":
     map_folder = args.map if args.map is not None else DEFAULT_MAP_FOLDER
     photos_folder = args.photos if args.photos is not None else DEFAULT_PHOTOS_FOLDER
     results_folder = args.results if args.results is not None else DEFAULT_RESULTS_FOLDER
-    rotate = True if args.no_rotate is None else False
+    rotate = True if args.no_rotate else False
 
     main(base_path, map_folder, photos_folder, results_folder, rotate)
