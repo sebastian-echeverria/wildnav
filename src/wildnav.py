@@ -26,6 +26,7 @@ DEFAULT_BASE_PATH = "../assets/"
 DEFAULT_MAP_FOLDER = "map/"
 DEFAULT_PHOTOS_FOLDER = "query/"
 DEFAULT_RESULTS_FOLDER = "results/"
+DEFAULT_ROTATIONS = 4
 
 MAP_DATA_FILE = "map.csv" #  csv file with the sattelite geo tagged images
 PHOTOS_DATA_FILE = "photo_metadata.csv" # csv file with the geo tagged drone images;
@@ -204,7 +205,7 @@ def calculate_geo_pose(geo_photo, center, features_mean,  shape):
 # MAIN
 #######################################
 
-def main(base_path: str, map_folder: str, photos_folder: str, results_folder: str):
+def main(base_path: str, map_folder: str, photos_folder: str, results_folder: str, rotate: bool = True):
     print(f"Running in {os. getcwd()}")
     print(f"Using base path: {base_path}")
 
@@ -246,16 +247,19 @@ def main(base_path: str, map_folder: str, photos_folder: str, results_folder: st
         matches_invalid = []
         confidence_invalid = []
 
-        rotations = 4 # list of rotations to try
-                        # keep in mind GNSS metadata could have wrong rotation angle
-                        # so we try to match the image with different (manually established) rotations
+        if rotate:
+            num_rotations = 1
+        else:
+            num_rotations = DEFAULT_ROTATIONS
 
-        # Iterate through all the rotations, right now it just means to rotate it 4 times in 90 degrees.
-        for i in range(0, rotations):
+        # Iterate through all the rotations, right now it just means to rotate it each time by 90 degrees.
+        print(f"Num rotations: {num_rotations}")
+        for i in range(0, num_rotations):
             # Rotate image.
             print("=================================")
-            print(f"Rotation {i + 1}")
-            photo = cv2.rotate(photo, cv2.ROTATE_90_CLOCKWISE)
+            print(f"Rotation {i}")
+            if i != 0:
+                photo = cv2.rotate(photo, cv2.ROTATE_90_CLOCKWISE)
             
             # Write the query photo to the map folder
             cv2.imwrite(os.path.join(map_path, "1_query_image.png"), photo)
@@ -322,11 +326,13 @@ if __name__ == "__main__":
     parser.add_argument("--map")
     parser.add_argument("--photos")
     parser.add_argument("--results")
+    parser.add_argument("--no_rotate")
     args = parser.parse_args()
 
     base_path = args.path if args.path is not None else DEFAULT_BASE_PATH
     map_folder = args.map if args.map is not None else DEFAULT_MAP_FOLDER
     photos_folder = args.photos if args.photos is not None else DEFAULT_PHOTOS_FOLDER
     results_folder = args.results if args.results is not None else DEFAULT_RESULTS_FOLDER
+    rotate = True if args.no_rotate is None else False
 
-    main(base_path, map_folder, photos_folder, results_folder)
+    main(base_path, map_folder, photos_folder, results_folder, rotate)
