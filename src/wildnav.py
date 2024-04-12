@@ -326,7 +326,7 @@ if __name__ == "__main__":
     parser.add_argument("--map")
     parser.add_argument("--photos")
     parser.add_argument("--results")
-    parser.add_argument("--no_rotate")
+    parser.add_argument("--no_rotate", action='store_true')
     args = parser.parse_args()
 
     base_path = args.path if args.path is not None else DEFAULT_BASE_PATH
