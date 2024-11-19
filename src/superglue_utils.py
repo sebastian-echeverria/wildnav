@@ -3,6 +3,7 @@ import cv2
 import matplotlib.cm as cm
 import torch
 import numpy as np
+import checks
 
 
 from superglue_lib.models.matching import Matching
@@ -156,21 +157,30 @@ def match_image(input: str, output_dir: str):
                     cX = int(moments["m10"] / moments["m00"])
                     cY = int(moments["m01"] / moments["m00"])
                     center = (cX  ,cY) #shape[0] is Y coord, shape[1] is X coord
-                    #use ratio here instead of pixels because image is reshaped in superglue
-                    features_mean = np.mean(mkpts0, axis = 0)
 
-                    #Draw the center of the area which has been matched
-                    cv2.circle(frame, center, radius = 10, color = (255, 0, 255), thickness = 5)
-                    cv2.circle(last_frame, (int(features_mean[0]), int(features_mean[1])), radius = 10, color = (255, 0, 0), thickness = 2)
-                    center = (cX / frame.shape[1] ,cY /frame.shape[0] )
-                    satellite_map_index = index
-                    max_matches = len(mkpts1)
-                    matches_to_return = matches_valid.copy()
-                    confidence_to_return = confidence_valid.copy()
-                    matches_inv_to_return = matches_invalid.copy()
-                    confidence_inv_to_return = confidence_invalid.copy()
-                    MATCHED = True
-                    print("Photos were succesfully matched!")
+                    # Check that the area has a logical shape.
+                    good_shape = checks.check_if_rectangular_like(dst, center)
+                    if not good_shape:
+                        print("Photos were matched, BUT match is not rectangularish")
+                    else:
+                        #use ratio here instead of pixels because image is reshaped in superglue
+                        features_mean = np.mean(mkpts0, axis = 0)
+
+                        #Draw the center of the area which has been matched
+                        cv2.circle(frame, center, radius = 10, color = (255, 0, 255), thickness = 5)
+                        cv2.circle(last_frame, (int(features_mean[0]), int(features_mean[1])), radius = 10, color = (255, 0, 0), thickness = 2)
+                        center = (cX / frame.shape[1] ,cY /frame.shape[0] )
+
+                        # Prepare data to be returned.
+                        satellite_map_index = index
+                        max_matches = len(mkpts1)
+                        matches_to_return = matches_valid.copy()
+                        confidence_to_return = confidence_valid.copy()
+                        matches_inv_to_return = matches_invalid.copy()
+                        confidence_inv_to_return = confidence_invalid.copy()
+
+                        MATCHED = True
+                        print("Photos were succesfully matched!")
 
         else:
             print("Photos were NOT matched")
