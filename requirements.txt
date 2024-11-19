@@ -1,6 +1,6 @@
 haversine==2.5.1
 matplotlib>=3.6.1
-numpy>=1.23.3
+numpy==1.23.3
 opencv-python-headless==4.5.5.64
 pandas==1.4.2
 requests>=2.27.1
